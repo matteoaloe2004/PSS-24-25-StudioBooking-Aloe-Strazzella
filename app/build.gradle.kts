@@ -21,8 +21,8 @@ dependencies {
     // MySQL Connector
     implementation("mysql:mysql-connector-java:8.0.33")
 
-    // Logback per logging
-    implementation("ch.qos.logback:logback-classic:1.4.11")
+    implementation("com.zaxxer:HikariCP:5.0.1")
+    implementation("org.mindrot:jbcrypt:0.4")
 
     // JUnit 5 per i test
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
