@@ -10,10 +10,10 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Carica l'FXML dalla cartella resources/view
-        Parent root = FXMLLoader.load(getClass().getResource("/view/StudioView.fxml"));
-        primaryStage.setTitle("Studio Booking");
-        primaryStage.setScene(new Scene(root));
+        // Carica l'FXML della schermata di login dalla cartella resources/view
+        Parent root = FXMLLoader.load(getClass().getResource("/view/LoginView.fxml"));
+        primaryStage.setTitle("Studio Booking - Login");
+        primaryStage.setScene(new Scene(root, 400, 300)); // puoi adattare dimensioni
         primaryStage.show();
     }
 
