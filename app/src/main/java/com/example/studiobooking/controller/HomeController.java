@@ -12,7 +12,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
-import java.net.URL;
 import java.util.List;
 
 public class HomeController {
@@ -21,7 +20,7 @@ public class HomeController {
     private Label welcomeLabel;
 
     @FXML
-    private Button loginButton, registerButton, bookButton;
+    private Button loginButton, registerButton, bookButton, logoutButton;
 
     @FXML
     private ListView<Studio> studiosListView;
@@ -37,6 +36,9 @@ public class HomeController {
         loginButton.setOnAction(e -> openLogin());
         registerButton.setOnAction(e -> openRegister());
         bookButton.setOnAction(e -> openBooking());
+        logoutButton.setOnAction(e -> logout());
+
+        logoutButton.setVisible(false); // logout nascosto all'avvio
     }
 
     public void setUtenteLoggato(Utente utente) {
@@ -45,7 +47,16 @@ public class HomeController {
             welcomeLabel.setText("Ciao " + utente.getName() + ", bentornato!");
             loginButton.setVisible(false);
             registerButton.setVisible(false);
+            logoutButton.setVisible(true);
         }
+    }
+
+    private void logout() {
+        utenteLoggato = null;
+        welcomeLabel.setText("Benvenuto su Studio Booking!");
+        loginButton.setVisible(true);
+        registerButton.setVisible(true);
+        logoutButton.setVisible(false);
     }
 
     private void loadStudios() {
@@ -57,8 +68,13 @@ public class HomeController {
     private void openLogin() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LoginView.fxml"));
+            Parent root = loader.load();
+
+            LoginController loginController = loader.getController();
+            loginController.setHomeController(this); // Passa riferimento a questa home
+
             Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load()));
+            stage.setScene(new Scene(root));
             stage.setTitle("Login");
             stage.show();
         } catch (Exception ex) {
@@ -70,7 +86,7 @@ public class HomeController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RegisterView.fxml"));
             Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load()));
+            stage.setScene(new Scene(loader.load(), 400, 300));
             stage.setTitle("Registrazione");
             stage.show();
         } catch (Exception ex) {
@@ -100,7 +116,7 @@ public class HomeController {
             controller.initBooking(utenteLoggato, selected);
 
             Stage stage = new Stage();
-            stage.setScene(new Scene(root));
+            stage.setScene(new Scene(root, 800, 600)); // finestra piu grande
             stage.setTitle("Prenotazione Studio: " + selected.getName());
             stage.show();
         } catch (Exception ex) {

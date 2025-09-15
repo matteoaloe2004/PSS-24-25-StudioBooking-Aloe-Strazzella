@@ -3,16 +3,9 @@ package com.example.studiobooking.controller;
 import com.example.studiobooking.dao.UserDAO;
 import com.example.studiobooking.model.Utente;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
-
-import java.net.URL;
+import javafx.fxml.FXMLLoader;
 
 public class LoginController {
 
@@ -27,6 +20,13 @@ public class LoginController {
 
     private UserDAO userDAO = new UserDAO();
 
+    // Riferimento alla home principale
+    private HomeController homeController;
+
+    public void setHomeController(HomeController homeController) {
+        this.homeController = homeController;
+    }
+
     @FXML
     public void initialize() {
         loginButton.setOnAction(e -> login());
@@ -39,32 +39,21 @@ public class LoginController {
 
         Utente utente = userDAO.login(email, password);
         if (utente != null) {
-            // Finestra di benvenuto
+            // Aggiorna la home principale
+            if (homeController != null) {
+                homeController.setUtenteLoggato(utente);
+            }
+
+            // Chiudi il popup di login
+            Stage stage = (Stage) loginButton.getScene().getWindow();
+            stage.close();
+
+            // Messaggio di benvenuto
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Benvenuto!");
             alert.setHeaderText(null);
             alert.setContentText("Ciao " + utente.getName() + ", bentornato su Studio Booking!");
             alert.showAndWait();
-
-            // Carica schermata studi
-            try {
-                URL fxmlLocation = getClass().getResource("/view/StudiosView.fxml");
-
-                FXMLLoader loader = new FXMLLoader(fxmlLocation);
-                Parent root = loader.load();
-
-                // Passa l'utente loggato al controller
-                StudiosController controller = loader.getController();
-                controller.setUtenteLoggato(utente);
-
-                Stage stage = (Stage) loginButton.getScene().getWindow();
-                stage.setScene(new Scene(root));
-                stage.setTitle("Studio Booking - Studi Disponibili");
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Email o password errati!");
             alert.showAndWait();
@@ -75,7 +64,7 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RegisterView.fxml"));
             Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load()));
+            stage.setScene(new javafx.scene.Scene(loader.load(), 400, 300));
             stage.setTitle("Registrazione");
             stage.show();
         } catch (Exception ex) {

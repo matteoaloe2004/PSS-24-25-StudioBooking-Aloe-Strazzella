@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.studiobooking.controller.BookingController"
+      spacing="15" alignment="TOP_CENTER" style="-fx-padding: 20; -fx-background-color: #f0f3f5;" prefWidth="400" prefHeight="500">
+
+    <Label fx:id="studioLabel" text="Prenotazione Studio" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+
+    <Label text="Seleziona il giorno:"/>
+    <DatePicker fx:id="datePicker" />
+
+    <Label text="Seleziona la fascia oraria:"/>
+    <ComboBox fx:id="timeSlotComboBox" prefWidth="200"/>
+
+    <Label text="Seleziona attrezzatura disponibile:"/>
+    <ListView fx:id="equipmentListView" prefHeight="100" prefWidth="250" />
+
+    <Button fx:id="confirmButton" text="Conferma Prenotazione" style="-fx-background-color: #27ae60; -fx-text-fill: white;"/>
+
+    <Button fx:id="backButton" text="Torna alla Home" style="-fx-background-color: #95a5a6; -fx-text-fill: white;"/>
+
+</VBox>

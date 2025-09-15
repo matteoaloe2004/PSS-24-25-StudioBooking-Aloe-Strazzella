@@ -13,6 +13,11 @@ public class Equipment {
         this.isAvailable = isAvailable;
     }
 
+    @Override
+public String toString() {
+    return this.getName(); // o qualsiasi proprietà tu voglia visualizzare nella ListView
+}
+
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
     public String getName() { return name; }
