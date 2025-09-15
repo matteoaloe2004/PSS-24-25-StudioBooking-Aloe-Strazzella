@@ -3,15 +3,12 @@ package com.example.studiobooking.dao;
 import com.example.studiobooking.model.Utente;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class UserDAO {
 
-    // 🔑 LOGIN con password hashata (BCrypt)
-    public Utente login(String email, String plainPassword) {
+    // Login
+    public Utente login(String email, String password) {
         String sql = "SELECT * FROM users WHERE email = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -20,42 +17,55 @@ public class UserDAO {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                String storedHash = rs.getString("password_hash");
+                String hashedPassword = rs.getString("Password_Hash");
 
-                // Controllo password con BCrypt
-                if (BCrypt.checkpw(plainPassword, storedHash)) {
+                if (BCrypt.checkpw(password, hashedPassword)) {
                     return new Utente(
                             rs.getLong("id"),
-                            rs.getString("email"),
-                            storedHash,
                             rs.getString("name"),
-                            rs.getTimestamp("created_at")
+                            rs.getString("email"),
+                            hashedPassword,
+                            rs.getTimestamp("created_at"),
+                            rs.getBoolean("is_admin")
                     );
                 }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null; // login fallito
+        return null;
     }
 
-    // 📝 REGISTRAZIONE con hash password
-    public boolean register(Utente utente) {
-        // Controllo se email già esiste
-        if (emailExists(utente.getEmail())) {
-            System.out.println("Email già esistente: " + utente.getEmail());
-            return false;
-        }
-
-        String sql = "INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)";
+    // Controlla se l'email esiste
+    public boolean emailExists(String email) {
+        String sql = "SELECT 1 FROM users WHERE email = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, utente.getEmail());
-            stmt.setString(2, utente.getPasswordHash()); // già hashata dal RegisterController
-            stmt.setString(3, utente.getName());
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Registra un utente normale
+    public boolean register(Utente utente) {
+        String sql = "INSERT INTO users (name, email, Password_Hash, created_at, is_admin) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            // Hash della password
+            String hashedPassword = BCrypt.hashpw(utente.getPassword(), BCrypt.gensalt());
+
+            stmt.setString(1, utente.getName());
+            stmt.setString(2, utente.getEmail());
+            stmt.setString(3, hashedPassword);
+            stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+            stmt.setBoolean(5, utente.isAdmin());
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -64,15 +74,21 @@ public class UserDAO {
         }
     }
 
-    // 📧 Controllo se email esiste già
-    public boolean emailExists(String email) {
-        String sql = "SELECT id FROM users WHERE email = ?";
+    // Crea un nuovo admin
+    public boolean createAdmin(String name, String email, String password) {
+        String sql = "INSERT INTO users (name, email, Password_Hash, created_at, is_admin) VALUES (?, ?, ?, ?, TRUE)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, email);
-            ResultSet rs = stmt.executeQuery();
-            return rs.next();
+            // Hash della password
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+            stmt.setString(1, name);
+            stmt.setString(2, email);
+            stmt.setString(3, hashedPassword);
+            stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+
+            return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();

@@ -1,9 +1,11 @@
 package com.example.studiobooking.dao;
 
+import com.example.studiobooking.model.Booking;
 import com.example.studiobooking.model.Equipment;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BookingDAO {
@@ -45,6 +47,29 @@ public class BookingDAO {
             return false;
         }
     }
+
+    public List<Booking> getAllBookings() {
+    List<Booking> bookings = new ArrayList<>();
+    String sql = "SELECT * FROM bookings ORDER BY start_time DESC";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+            Booking b = new Booking(
+                rs.getLong("id"),
+                rs.getLong("user_id"),
+                rs.getLong("studio_id"),
+                rs.getTimestamp("start_time").toLocalDateTime(),
+                rs.getTimestamp("end_time").toLocalDateTime(),
+                rs.getString("status")
+            );
+            bookings.add(b);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return bookings;
+}
 
     // Crea prenotazione
     public boolean createBooking(long userId, long studioId, LocalDate date, String timeSlot, List<Equipment> equipmentList) {

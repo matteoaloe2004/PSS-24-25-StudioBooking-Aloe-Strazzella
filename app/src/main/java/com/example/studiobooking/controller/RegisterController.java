@@ -10,6 +10,8 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.sql.Timestamp;
+
 public class RegisterController {
 
     @FXML
@@ -64,8 +66,15 @@ public class RegisterController {
         // Hash della password con BCrypt
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
-        // Creazione utente con password hashata
-        Utente utente = new Utente(0, email, hashedPassword, name, null);
+        // Creazione utente con password hashata e isAdmin=false
+        Utente utente = new Utente(
+                0,                          // id = 0 per nuovo utente
+                name,                       // name
+                email,                      // email
+                hashedPassword,             // password hashata
+                new Timestamp(System.currentTimeMillis()), // createdAt = ora corrente
+                false                       // isAdmin = false per utenti normali
+        );
 
         boolean success = userDAO.register(utente);
         if (success) {

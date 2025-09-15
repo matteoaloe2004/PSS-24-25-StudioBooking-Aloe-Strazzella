@@ -1,0 +1,24 @@
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studiobooking.controller.AdminController" spacing="15" alignment="TOP_CENTER" style="-fx-padding: 20;">
+    <Label text="Pannello Admin" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    
+    <HBox spacing="10">
+        <VBox spacing="5">
+            <Label text="Studi"/>
+            <ListView fx:id="studiosListView" prefHeight="200"/>
+            <Button fx:id="enableStudioButton" text="Abilita Studio"/>
+            <Button fx:id="disableStudioButton" text="Disabilita Studio"/>
+        </VBox>
+        <VBox spacing="5">
+            <Label text="Prenotazioni"/>
+            <ListView fx:id="bookingsListView" prefHeight="200"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="5">
+        <Label text="Crea nuovo Admin"/>
+        <TextField fx:id="adminNameField" promptText="Nome"/>
+        <TextField fx:id="adminEmailField" promptText="Email"/>
+        <PasswordField fx:id="adminPasswordField" promptText="Password"/>
+        <Button fx:id="createAdminButton" text="Crea Admin"/>
+    </VBox>
+</VBox>

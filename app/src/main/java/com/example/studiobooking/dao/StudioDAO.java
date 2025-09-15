@@ -31,6 +31,19 @@ public class StudioDAO {
         return studios;
     }
 
+    public boolean updateStudioStatus(long studioId, boolean active) {
+    String sql = "UPDATE studios SET is_active = ? WHERE id = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setBoolean(1, active);
+        stmt.setLong(2, studioId);
+        return stmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
     // Restituisce solo gli studi attivi
     public List<Studio> getActiveStudios() {
         List<Studio> studios = new ArrayList<>();
