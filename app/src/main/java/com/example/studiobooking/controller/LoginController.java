@@ -3,13 +3,16 @@ package com.example.studiobooking.controller;
 import com.example.studiobooking.dao.UserDAO;
 import com.example.studiobooking.model.Utente;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
+
+import java.net.URL;
 
 public class LoginController {
 
@@ -34,17 +37,30 @@ public class LoginController {
         String email = emailField.getText();
         String password = passwordField.getText();
 
-        // Per ora usiamo il plain text, poi puoi hashare con SHA-256
         Utente utente = userDAO.login(email, password);
         if (utente != null) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Login effettuato!");
+            // Finestra di benvenuto
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Benvenuto!");
+            alert.setHeaderText(null);
+            alert.setContentText("Ciao " + utente.getName() + ", bentornato su Studio Booking!");
             alert.showAndWait();
 
-            // Apri la schermata degli studi
+            // Carica schermata studi
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/StudiosView.fxml"));
+                URL fxmlLocation = getClass().getResource("/view/StudiosView.fxml");
+
+                FXMLLoader loader = new FXMLLoader(fxmlLocation);
+                Parent root = loader.load();
+
+                // Passa l'utente loggato al controller
+                StudiosController controller = loader.getController();
+                controller.setUtenteLoggato(utente);
+
                 Stage stage = (Stage) loginButton.getScene().getWindow();
-                stage.setScene(new Scene(loader.load()));
+                stage.setScene(new Scene(root));
+                stage.setTitle("Studio Booking - Studi Disponibili");
+
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

@@ -8,14 +8,21 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class RegisterController {
 
     @FXML
-    private TextField nameField, emailField;
+    private TextField emailField;
+
+    @FXML
+    private TextField nameField;
 
     @FXML
     private PasswordField passwordField;
+
+    @FXML
+    private PasswordField confirmPasswordField;
 
     @FXML
     private Button registerButton;
@@ -28,37 +35,50 @@ public class RegisterController {
     }
 
     private void registerUser() {
-        String name = nameField.getText();
-        String email = emailField.getText();
-        String password = passwordField.getText();
+        String email = emailField.getText().trim();
+        String password = passwordField.getText().trim();
+        String confirmPassword = confirmPasswordField.getText().trim();
+        String name = nameField.getText().trim();
 
-        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            showAlert("Tutti i campi sono obbligatori.");
+        if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || name.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Tutti i campi sono obbligatori.");
+            return;
+        }
+
+        if (password.length() < 6) {
+            showAlert(Alert.AlertType.WARNING, "La password deve avere almeno 6 caratteri.");
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            showAlert(Alert.AlertType.WARNING, "Le password non coincidono.");
             return;
         }
 
         // Controllo email già esistente
         if (userDAO.emailExists(email)) {
-            showAlert("Email già registrata!");
+            showAlert(Alert.AlertType.ERROR, "Email già registrata!");
             return;
         }
 
-        // Per ora password in chiaro, poi hash con SHA-256
-        Utente utente = new Utente(0, name, email, password, null);
+        // Hash della password con BCrypt
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+        // Creazione utente con password hashata
+        Utente utente = new Utente(0, email, hashedPassword, name, null);
 
         boolean success = userDAO.register(utente);
         if (success) {
-            showAlert("Registrazione completata! Ora puoi fare login.");
-            // Chiudi finestra registrazione
+            showAlert(Alert.AlertType.INFORMATION, "Registrazione completata! Ora puoi fare login.");
             Stage stage = (Stage) registerButton.getScene().getWindow();
             stage.close();
         } else {
-            showAlert("Errore durante la registrazione.");
+            showAlert(Alert.AlertType.ERROR, "Errore durante la registrazione.");
         }
     }
 
-    private void showAlert(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type, message);
         alert.showAndWait();
     }
 }

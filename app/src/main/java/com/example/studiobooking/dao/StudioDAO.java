@@ -14,17 +14,16 @@ public class StudioDAO {
         String sql = "SELECT * FROM studios";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                Studio studio = new Studio(
+                studios.add(new Studio(
                         rs.getLong("id"),
                         rs.getString("name"),
                         rs.getString("description"),
                         rs.getBoolean("is_active")
-                );
-                studios.add(studio);
+                ));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -35,20 +34,21 @@ public class StudioDAO {
     // Restituisce solo gli studi attivi
     public List<Studio> getActiveStudios() {
         List<Studio> studios = new ArrayList<>();
-        String sql = "SELECT * FROM studios WHERE is_active = 1";
+        String sql = "SELECT * FROM studios WHERE is_active = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                Studio studio = new Studio(
-                        rs.getLong("id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getBoolean("is_active")
-                );
-                studios.add(studio);
+            stmt.setBoolean(1, true);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    studios.add(new Studio(
+                            rs.getLong("id"),
+                            rs.getString("name"),
+                            rs.getString("description"),
+                            rs.getBoolean("is_active")
+                    ));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -113,15 +113,15 @@ public class StudioDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, id);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return new Studio(
-                        rs.getLong("id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getBoolean("is_active")
-                );
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Studio(
+                            rs.getLong("id"),
+                            rs.getString("name"),
+                            rs.getString("description"),
+                            rs.getBoolean("is_active")
+                    );
+                }
             }
 
         } catch (SQLException e) {

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studiobooking.controller.HomeController">
+    <top>
+        <VBox spacing="5" alignment="CENTER" style="-fx-padding: 20; -fx-background-color: #2c3e50;">
+            <Label fx:id="welcomeLabel" text="Benvenuto su Studio Booking!" style="-fx-text-fill: white; -fx-font-size: 24px;" />
+            <HBox spacing="10" alignment="CENTER">
+                <Button fx:id="loginButton" text="Login" style="-fx-background-color: #3498db; -fx-text-fill: white;"/>
+                <Button fx:id="registerButton" text="Registrati" style="-fx-background-color: #2ecc71; -fx-text-fill: white;"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox spacing="15" style="-fx-padding: 20;">
+            <Label text="Studi Disponibili:" style="-fx-font-size: 18px;"/>
+            <ListView fx:id="studiosListView" prefHeight="300" style="-fx-background-color: #ecf0f1;"/>
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-padding: 20;">
+            <Button fx:id="bookButton" text="Prenota Studio" style="-fx-background-color: #e67e22; -fx-text-fill: white;"/>
+        </HBox>
+    </bottom>
+</BorderPane>
