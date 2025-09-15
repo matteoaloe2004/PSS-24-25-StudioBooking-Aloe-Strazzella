@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.*?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studiobooking.controller.HomeController" prefWidth="600" prefHeight="600">
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studiobooking.controller.HomeController" prefWidth="800" prefHeight="600">
     <!-- Top: Benvenuto e pulsanti Login/Register -->
     <top>
         <VBox spacing="10" alignment="CENTER" style="-fx-padding: 20; -fx-background-color: #2c3e50;">

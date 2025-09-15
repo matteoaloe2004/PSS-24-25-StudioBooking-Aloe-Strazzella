@@ -6,21 +6,16 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 
 public class LoginController {
 
-    @FXML
-    private TextField emailField;
-
-    @FXML
-    private PasswordField passwordField;
-
-    @FXML
-    private Button loginButton, registerButton;
+    @FXML private TextField emailField;
+    @FXML private PasswordField passwordField;
+    @FXML private Button loginButton, registerButton;
 
     private UserDAO userDAO = new UserDAO();
-
-    // Riferimento alla home principale
     private HomeController homeController;
 
     public void setHomeController(HomeController homeController) {
@@ -34,29 +29,66 @@ public class LoginController {
     }
 
     private void login() {
-        String email = emailField.getText();
-        String password = passwordField.getText();
+        String email = emailField.getText().trim();
+        String password = passwordField.getText().trim();
 
         Utente utente = userDAO.login(email, password);
         if (utente != null) {
-            // Aggiorna la home principale
-            if (homeController != null) {
-                homeController.setUtenteLoggato(utente);
-            }
-
-            // Chiudi il popup di login
             Stage stage = (Stage) loginButton.getScene().getWindow();
             stage.close();
 
-            // Messaggio di benvenuto
+            if (utente.isAdmin()) {
+                openAdminHome(utente);
+            } else {
+                if (homeController != null) {
+                    homeController.setUtenteLoggato(utente);
+                }
+                openUserHome(utente);
+            }
+
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Benvenuto!");
             alert.setHeaderText(null);
             alert.setContentText("Ciao " + utente.getName() + ", bentornato su Studio Booking!");
             alert.showAndWait();
+
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Email o password errati!");
             alert.showAndWait();
+        }
+    }
+
+    private void openAdminHome(Utente admin) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AdminView.fxml"));
+            Parent root = loader.load();
+
+            AdminController controller = loader.getController();
+            controller.initAdmin(admin);
+
+            Stage stage = new Stage();
+            stage.setTitle("Pannello Admin");
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void openUserHome(Utente user) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Home.fxml"));
+            Parent root = loader.load();
+
+            HomeController controller = loader.getController();
+            controller.setUtenteLoggato(user);
+
+            Stage stage = new Stage();
+            stage.setTitle("Home Utente");
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -64,7 +96,7 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RegisterView.fxml"));
             Stage stage = new Stage();
-            stage.setScene(new javafx.scene.Scene(loader.load(), 400, 300));
+            stage.setScene(new Scene(loader.load(), 400, 300));
             stage.setTitle("Registrazione");
             stage.show();
         } catch (Exception ex) {

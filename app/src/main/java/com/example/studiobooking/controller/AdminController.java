@@ -5,7 +5,6 @@ import com.example.studiobooking.dao.StudioDAO;
 import com.example.studiobooking.dao.BookingDAO;
 import com.example.studiobooking.model.Utente;
 import com.example.studiobooking.model.Studio;
-import com.example.studiobooking.model.Equipment;
 import com.example.studiobooking.model.Booking;
 
 import javafx.collections.FXCollections;
@@ -13,6 +12,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.List;
 
@@ -40,6 +40,7 @@ public class AdminController {
             alert.showAndWait();
             Stage stage = (Stage) createAdminButton.getScene().getWindow();
             stage.close();
+            return;
         }
         loadStudios();
         loadBookings();
@@ -59,9 +60,9 @@ public class AdminController {
 
     @FXML
     private void createAdmin() {
-        String name = adminNameField.getText();
-        String email = adminEmailField.getText();
-        String password = adminPasswordField.getText();
+        String name = adminNameField.getText().trim();
+        String email = adminEmailField.getText().trim();
+        String password = adminPasswordField.getText().trim();
 
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.WARNING, "Compila tutti i campi.");
@@ -69,7 +70,10 @@ public class AdminController {
             return;
         }
 
-        boolean success = userDAO.createAdmin(name, email, password);
+        // Hash password con BCrypt
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+        boolean success = userDAO.createAdmin(name, email, hashedPassword);
         if (success) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Admin creato con successo!");
             alert.showAndWait();
