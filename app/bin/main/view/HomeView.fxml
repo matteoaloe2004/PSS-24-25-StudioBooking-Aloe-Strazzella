@@ -22,7 +22,6 @@
     <!-- Center: Lista studi e lista prenotazioni utente -->
     <center>
         <HBox spacing="20" style="-fx-padding: 20;">
-            
             <!-- Lista studi -->
             <VBox spacing="10" HBox.hgrow="ALWAYS" style="-fx-background-color: #ecf0f1; -fx-padding: 15; -fx-border-color: #bdc3c7; -fx-border-width: 2px; -fx-border-radius: 10px;">
                 <Label text="Studi Disponibili:" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
@@ -34,14 +33,17 @@
                 <Label text="Le Tue Prenotazioni:" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
                 <ListView fx:id="userBookingsListView" prefWidth="400" prefHeight="500" style="-fx-background-color: white; -fx-font-size: 14px;"/>
             </VBox>
-
         </HBox>
     </center>
 
-    <!-- Bottom: Pulsante prenota -->
+    <!-- Bottom: Pulsanti prenota e annulla -->
     <bottom>
         <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-padding: 20;">
-            <Button fx:id="bookButton" text="Prenota Studio" style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10 20;"/>
+            <Button fx:id="bookButton" text="Prenota Studio"
+                    style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10 20;"/>
+            <Button fx:id="cancelBookingButton" text="Annulla Prenotazione"
+                    style="-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10 20;"
+                    disable="true"/>
         </HBox>
     </bottom>
 
