@@ -33,12 +33,27 @@ public class HomeController {
     public void initialize() {
         loadStudios();
 
+        // Imposta le azioni dei pulsanti
         loginButton.setOnAction(e -> openLogin());
         registerButton.setOnAction(e -> openRegister());
         bookButton.setOnAction(e -> openBooking());
         logoutButton.setOnAction(e -> logout());
 
         logoutButton.setVisible(false); // logout nascosto all'avvio
+
+        // Mostra nome e descrizione nella lista studi
+        studiosListView.setCellFactory(list -> new ListCell<>() {
+            @Override
+            protected void updateItem(Studio studio, boolean empty) {
+                super.updateItem(studio, empty);
+                if (empty || studio == null) {
+                    setText(null);
+                } else {
+                    setText(studio.getName() + "\n" + studio.getDescription());
+                    setStyle("-fx-font-size: 14px; -fx-padding: 6px;");
+                }
+            }
+        });
     }
 
     public void setUtenteLoggato(Utente utente) {
@@ -116,7 +131,7 @@ public class HomeController {
             controller.initBooking(utenteLoggato, selected);
 
             Stage stage = new Stage();
-            stage.setScene(new Scene(root, 800, 600)); // finestra piu grande
+            stage.setScene(new Scene(root, 800, 600)); // finestra più grande
             stage.setTitle("Prenotazione Studio: " + selected.getName());
             stage.show();
         } catch (Exception ex) {

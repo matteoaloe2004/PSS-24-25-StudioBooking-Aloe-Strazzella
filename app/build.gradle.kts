@@ -1,7 +1,7 @@
 plugins {
     application
     java
-    id("org.openjfx.javafxplugin") version "0.0.14" // Plugin JavaFX
+    id("org.openjfx.javafxplugin") version "0.1.0" // Plugin JavaFX
 }
 
 group = "com.studiobooking"
