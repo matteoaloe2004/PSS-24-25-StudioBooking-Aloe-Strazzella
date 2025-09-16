@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studiobooking.controller.StudiosController">
+    <top>
+        <Label text="Studi Disponibili" style="-fx-font-size: 24px; -fx-padding: 10;" />
+    </top>
+    <center>
+        <ListView fx:id="studiosListView" prefWidth="400" prefHeight="300" />
+    </center>
+    <bottom>
+        <HBox spacing="10" style="-fx-padding: 10;">
+            <Button text="Prenota Studio" fx:id="bookButton" />
+        </HBox>
+    </bottom>
+</BorderPane>
