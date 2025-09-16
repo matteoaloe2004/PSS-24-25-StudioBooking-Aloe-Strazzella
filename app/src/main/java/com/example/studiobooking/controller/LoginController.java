@@ -6,7 +6,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 public class LoginController {
@@ -16,8 +19,11 @@ public class LoginController {
     @FXML private Button loginButton, registerButton;
 
     private UserDAO userDAO = new UserDAO();
+
+    // Campo per collegare la Home esistente
     private HomeController homeController;
 
+    // Metodo pubblico per impostare la HomeController
     public void setHomeController(HomeController homeController) {
         this.homeController = homeController;
     }
@@ -29,7 +35,7 @@ public class LoginController {
     }
 
     private void login() {
-        String email = emailField.getText().trim();
+        String email = emailField.getText().trim().toLowerCase();
         String password = passwordField.getText().trim();
 
         Utente utente = userDAO.login(email, password);
@@ -37,10 +43,10 @@ public class LoginController {
             if (utente.isAdmin()) {
                 openAdminHome(utente);
             } else {
-                // Aggiorna la Home esistente invece di aprire un nuovo Stage
+                // Aggiorna la Home esistente se presente
                 if (homeController != null) {
                     homeController.setUtenteLoggato(utente);
-                    homeController.loadUserBookings(); // aggiorna la sezione prenotazioni
+                    homeController.loadUserBookings();
                 } else {
                     openUserHome(utente);
                 }
@@ -52,10 +58,8 @@ public class LoginController {
             alert.setContentText("Ciao " + utente.getName() + ", bentornato su Studio Booking!");
             alert.showAndWait();
 
-            // Chiudi la finestra di login
             Stage stage = (Stage) loginButton.getScene().getWindow();
             stage.close();
-
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Email o password errati!");
             alert.showAndWait();
@@ -86,7 +90,7 @@ public class LoginController {
 
             HomeController controller = loader.getController();
             controller.setUtenteLoggato(user);
-            controller.loadUserBookings(); // carica le prenotazioni dell’utente
+            controller.loadUserBookings();
 
             Stage stage = new Stage();
             stage.setTitle("Home Utente");

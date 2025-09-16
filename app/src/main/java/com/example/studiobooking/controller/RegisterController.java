@@ -8,7 +8,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Timestamp;
 
@@ -37,7 +36,7 @@ public class RegisterController {
     }
 
     private void registerUser() {
-        String email = emailField.getText().trim();
+        String email = emailField.getText().trim().toLowerCase(); // normalizza email
         String password = passwordField.getText().trim();
         String confirmPassword = confirmPasswordField.getText().trim();
         String name = nameField.getText().trim();
@@ -57,23 +56,19 @@ public class RegisterController {
             return;
         }
 
-        // Controllo email già esistente
         if (userDAO.emailExists(email)) {
             showAlert(Alert.AlertType.ERROR, "Email già registrata!");
             return;
         }
 
-        // Hash della password con BCrypt
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-
-        // Creazione utente con password hashata e isAdmin=false
+        // Creazione utente con PASSWORD IN CHIARO, UserDAO farà l'hash
         Utente utente = new Utente(
-                0,                          // id = 0 per nuovo utente
-                name,                       // name
-                email,                      // email
-                hashedPassword,             // password hashata
-                new Timestamp(System.currentTimeMillis()), // createdAt = ora corrente
-                false                       // isAdmin = false per utenti normali
+                0,                      // id = 0 per nuovo utente
+                name,                   // name
+                email,                  // email
+                password,               // password in chiaro
+                new Timestamp(System.currentTimeMillis()),
+                false                   // isAdmin = false
         );
 
         boolean success = userDAO.register(utente);
