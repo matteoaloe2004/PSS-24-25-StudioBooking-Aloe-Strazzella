@@ -16,7 +16,7 @@ public class BookingDAO {
             SELECT COUNT(*) AS count
             FROM bookings
             WHERE studio_id = ? 
-              AND status = 'Confermata'
+              AND status = 'CONFIRMED'
               AND ((start_time < ? AND end_time > ?) 
                    OR (start_time < ? AND end_time > ?) 
                    OR (start_time >= ? AND end_time <= ?))
@@ -45,47 +45,49 @@ public class BookingDAO {
         return false;
     }
 
+    // Recupera le prenotazioni di un utente
     public List<Booking> getBookingsByUser(long userId) {
-    List<Booking> bookings = new ArrayList<>();
-    String sql = "SELECT b.id, b.user_id, u.name AS user_name, b.studio_id, " +
-                 "b.start_time, b.end_time, b.status " +
-                 "FROM bookings b JOIN users u ON b.user_id = u.id " +
-                 "WHERE b.user_id = ? ORDER BY b.start_time DESC";
-    try (Connection conn = DatabaseConnection.getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT b.id, b.user_id, u.name AS user_name, b.studio_id, " +
+                     "b.start_time, b.end_time, b.status " +
+                     "FROM bookings b JOIN users u ON b.user_id = u.id " +
+                     "WHERE b.user_id = ? ORDER BY b.start_time DESC";
 
-        stmt.setLong(1, userId);
-        ResultSet rs = stmt.executeQuery();
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        while (rs.next()) {
-            Booking b = new Booking(
-                rs.getLong("id"),
-                rs.getLong("user_id"),
-                rs.getString("user_name"),
-                rs.getLong("studio_id"),
-                rs.getTimestamp("start_time").toLocalDateTime(),
-                rs.getTimestamp("end_time").toLocalDateTime(),
-                rs.getString("status")
-            );
-            bookings.add(b);
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Booking b = new Booking(
+                    rs.getLong("id"),
+                    rs.getLong("user_id"),
+                    rs.getString("user_name"),
+                    rs.getLong("studio_id"),
+                    rs.getTimestamp("start_time").toLocalDateTime(),
+                    rs.getTimestamp("end_time").toLocalDateTime(),
+                    rs.getString("status")
+                );
+                bookings.add(b);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return bookings;
     }
-
-    return bookings;
-}
 
     // Crea una prenotazione e associa l'equipment selezionato
     public boolean createBooking(long userId, long studioId, LocalDateTime start, LocalDateTime end, List<Equipment> equipmentList) {
-        String insertBooking = "INSERT INTO bookings (user_id, studio_id, start_time, end_time, status) VALUES (?, ?, ?, ?, 'Confermata')";
+        String insertBooking = "INSERT INTO bookings (user_id, studio_id, start_time, end_time, status) VALUES (?, ?, ?, ?, 'CONFIRMED')";
         String insertEquipment = "INSERT INTO booking_equipment (booking_id, equipment_id) VALUES (?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection()) {
             conn.setAutoCommit(false);
 
-            // Inserimento booking
+            // Inserimento prenotazione
             long bookingId;
             try (PreparedStatement stmt = conn.prepareStatement(insertBooking, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setLong(1, userId);
@@ -103,7 +105,7 @@ public class BookingDAO {
                 }
             }
 
-            // Inserimento equipment
+            // Inserimento attrezzature
             try (PreparedStatement stmt = conn.prepareStatement(insertEquipment)) {
                 for (Equipment e : equipmentList) {
                     stmt.setLong(1, bookingId);
@@ -115,6 +117,24 @@ public class BookingDAO {
 
             conn.commit();
             return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Cancella una prenotazione se mancano almeno 24 ore all'inizio
+    public boolean cancelBooking(long bookingId) {
+        String sql = "UPDATE bookings SET status = 'CANCELLED' " +
+                     "WHERE id = ? AND start_time > NOW() + INTERVAL 24 HOUR AND status = 'CONFIRMED'";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, bookingId);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();

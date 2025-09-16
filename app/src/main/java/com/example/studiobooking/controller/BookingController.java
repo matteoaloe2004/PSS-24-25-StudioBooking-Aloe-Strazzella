@@ -13,37 +13,28 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 public class BookingController {
 
-    @FXML
-    private Label studioLabel;
-
-    @FXML
-    private DatePicker datePicker;
-
-    @FXML
-    private ComboBox<String> timeSlotComboBox;
-
-    @FXML
-    private ListView<Equipment> equipmentListView;
-
-    @FXML
-    private Button confirmButton;
-
-    @FXML
-    private Button backButton;
+    @FXML private Label studioLabel;
+    @FXML private DatePicker datePicker;
+    @FXML private ComboBox<String> timeSlotComboBox;
+    @FXML private ListView<Equipment> equipmentListView;
+    @FXML private Button confirmButton;
+    @FXML private Button backButton;
 
     private Utente utenteLoggato;
     private Studio studioSelezionato;
+    private HomeController homeController; // Riferimento alla home
 
     private EquipmentDAO equipmentDAO = new EquipmentDAO();
     private BookingDAO bookingDAO = new BookingDAO();
 
     private ObservableList<Equipment> equipmentObservableList = FXCollections.observableArrayList();
 
-    // Metodo pubblico per inizializzare la prenotazione
     public void initBooking(Utente utente, Studio studio) {
         this.utenteLoggato = utente;
         this.studioSelezionato = studio;
@@ -74,13 +65,16 @@ public class BookingController {
         loadEquipment();
     }
 
+    public void setHomeController(HomeController homeController) {
+        this.homeController = homeController;
+    }
+
     private void loadEquipment() {
         List<Equipment> equipmentList = equipmentDAO.getEquipmentByStudio(studioSelezionato.getId());
         equipmentObservableList.setAll(equipmentList);
         equipmentListView.setItems(equipmentObservableList);
         equipmentListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-        // Mostra il nome corretto degli oggetti
         equipmentListView.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Equipment item, boolean empty) {
@@ -97,7 +91,6 @@ public class BookingController {
     }
 
     private void goBackToHome() {
-        // Chiudi la finestra di prenotazione
         Stage stage = (Stage) backButton.getScene().getWindow();
         stage.close();
     }
@@ -117,24 +110,35 @@ public class BookingController {
             return;
         }
 
-        // Controlla disponibilità studio
-        if (!bookingDAO.isAvailable(studioSelezionato.getId(), date, timeSlot)) {
+        String[] times = timeSlot.split(" - ");
+        LocalTime startTime = LocalTime.parse(times[0]);
+        LocalTime endTime = LocalTime.parse(times[1]);
+
+        LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
+        LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
+
+        if (!bookingDAO.isAvailable(studioSelezionato.getId(), startDateTime, endDateTime)) {
             showAlert(Alert.AlertType.ERROR, "Lo studio non è disponibile in questa fascia oraria.");
             return;
         }
 
-        // Salva prenotazione nel DB
         boolean success = bookingDAO.createBooking(
                 utenteLoggato.getId(),
                 studioSelezionato.getId(),
-                date,
-                timeSlot,
+                startDateTime,
+                endDateTime,
                 selectedEquipment
         );
 
         if (success) {
             showAlert(Alert.AlertType.INFORMATION, "Prenotazione confermata per " +
                     studioSelezionato.getName() + " il " + date + " " + timeSlot);
+
+            // Aggiorna la lista prenotazioni nella HomeView in tempo reale
+            if (homeController != null) {
+                homeController.loadUserBookings();
+            }
+
             goBackToHome();
         } else {
             showAlert(Alert.AlertType.ERROR, "Errore durante la prenotazione.");
