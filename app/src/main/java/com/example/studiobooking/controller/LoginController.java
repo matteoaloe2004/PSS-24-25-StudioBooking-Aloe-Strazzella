@@ -3,11 +3,11 @@ package com.example.studiobooking.controller;
 import com.example.studiobooking.dao.UserDAO;
 import com.example.studiobooking.model.Utente;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.stage.Stage;
 
 public class LoginController {
 
@@ -34,16 +34,16 @@ public class LoginController {
 
         Utente utente = userDAO.login(email, password);
         if (utente != null) {
-            Stage stage = (Stage) loginButton.getScene().getWindow();
-            stage.close();
-
             if (utente.isAdmin()) {
                 openAdminHome(utente);
             } else {
+                // Aggiorna la Home esistente invece di aprire un nuovo Stage
                 if (homeController != null) {
                     homeController.setUtenteLoggato(utente);
+                    homeController.loadUserBookings(); // aggiorna la sezione prenotazioni
+                } else {
+                    openUserHome(utente);
                 }
-                openUserHome(utente);
             }
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -51,6 +51,10 @@ public class LoginController {
             alert.setHeaderText(null);
             alert.setContentText("Ciao " + utente.getName() + ", bentornato su Studio Booking!");
             alert.showAndWait();
+
+            // Chiudi la finestra di login
+            Stage stage = (Stage) loginButton.getScene().getWindow();
+            stage.close();
 
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR, "Email o password errati!");
@@ -77,11 +81,12 @@ public class LoginController {
 
     private void openUserHome(Utente user) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/Home.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/HomeView.fxml"));
             Parent root = loader.load();
 
             HomeController controller = loader.getController();
             controller.setUtenteLoggato(user);
+            controller.loadUserBookings(); // carica le prenotazioni dell’utente
 
             Stage stage = new Stage();
             stage.setTitle("Home Utente");

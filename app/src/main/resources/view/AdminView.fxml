@@ -29,7 +29,12 @@
         <!-- Colonna Prenotazioni -->
         <VBox spacing="10" alignment="TOP_CENTER">
             <Label text="Prenotazioni" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
-            <ListView fx:id="bookingsListView" prefWidth="250" prefHeight="250"/>
+            <ListView fx:id="bookingsListView" prefWidth="300" prefHeight="250"/>
+            <HBox spacing="10">
+                <Button fx:id="addBookingButton" text="Aggiungi" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+                <Button fx:id="editBookingButton" text="Modifica" style="-fx-background-color: #FF9800; -fx-text-fill: white;"/>
+                <Button fx:id="deleteBookingButton" text="Rimuovi" style="-fx-background-color: #f44336; -fx-text-fill: white;"/>
+            </HBox>
         </VBox>
 
     </HBox>

@@ -1,6 +1,8 @@
 package com.example.studiobooking.controller;
 
+import com.example.studiobooking.dao.BookingDAO;
 import com.example.studiobooking.dao.StudioDAO;
+import com.example.studiobooking.model.Booking;
 import com.example.studiobooking.model.Studio;
 import com.example.studiobooking.model.Utente;
 import javafx.collections.FXCollections;
@@ -25,8 +27,15 @@ public class HomeController {
     @FXML
     private ListView<Studio> studiosListView;
 
+    @FXML
+    private ListView<Booking> userBookingsListView;
+
     private StudioDAO studioDAO = new StudioDAO();
+    private BookingDAO bookingDAO = new BookingDAO();
+
     private ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
+    private ObservableList<Booking> userBookingsObservableList = FXCollections.observableArrayList();
+
     private Utente utenteLoggato;
 
     @FXML
@@ -54,6 +63,23 @@ public class HomeController {
                 }
             }
         });
+
+        // Configura lista prenotazioni utente
+        userBookingsListView.setItems(userBookingsObservableList);
+        userBookingsListView.setCellFactory(list -> new ListCell<>() {
+            @Override
+            protected void updateItem(Booking booking, boolean empty) {
+                super.updateItem(booking, empty);
+                if (empty || booking == null) {
+                    setText(null);
+                } else {
+                    setText("Studio ID: " + booking.getStudioId() +
+                            "\nData: " + booking.getStartTime().toLocalDate() +
+                            "\nFascia: " + booking.getStartTime().toLocalTime() + " - " + booking.getEndTime().toLocalTime() +
+                            "\nStato: " + booking.getStatus());
+                }
+            }
+        });
     }
 
     public void setUtenteLoggato(Utente utente) {
@@ -63,7 +89,16 @@ public class HomeController {
             loginButton.setVisible(false);
             registerButton.setVisible(false);
             logoutButton.setVisible(true);
+
+            loadUserBookings(); // Carica le prenotazioni dell'utente
         }
+    }
+
+    public void loadUserBookings() {
+        if (utenteLoggato == null) return;
+
+        List<Booking> bookings = bookingDAO.getBookingsByUser(utenteLoggato.getId());
+        userBookingsObservableList.setAll(bookings);
     }
 
     private void logout() {
@@ -72,6 +107,7 @@ public class HomeController {
         loginButton.setVisible(true);
         registerButton.setVisible(true);
         logoutButton.setVisible(false);
+        userBookingsObservableList.clear();
     }
 
     private void loadStudios() {
@@ -131,7 +167,7 @@ public class HomeController {
             controller.initBooking(utenteLoggato, selected);
 
             Stage stage = new Stage();
-            stage.setScene(new Scene(root, 800, 600)); // finestra più grande
+            stage.setScene(new Scene(root, 800, 600));
             stage.setTitle("Prenotazione Studio: " + selected.getName());
             stage.show();
         } catch (Exception ex) {

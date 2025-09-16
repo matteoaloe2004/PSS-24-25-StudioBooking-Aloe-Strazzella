@@ -1,6 +1,5 @@
 package com.example.studiobooking.dao;
 
-import com.example.studiobooking.model.Utente;
 import com.example.studiobooking.model.Studio;
 import com.example.studiobooking.model.Booking;
 
@@ -42,8 +41,8 @@ public class AdminDAO {
                 Studio s = new Studio(
                         rs.getLong("id"),
                         rs.getString("name"),
-                        rs.getString("location"),
-                        rs.getBoolean("active")
+                        rs.getString("description"),
+                        rs.getBoolean("is_active")
                 );
                 studios.add(s);
             }
@@ -56,13 +55,12 @@ public class AdminDAO {
 
     // ABBILITA O DISABILITA UNO STUDIO
     public boolean updateStudioStatus(long studioId, boolean active) {
-        String sql = "UPDATE studios SET active = ? WHERE id = ?";
+        String sql = "UPDATE studios SET is_active = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setBoolean(1, active);
             stmt.setLong(2, studioId);
-
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -71,10 +69,16 @@ public class AdminDAO {
         }
     }
 
-    // OTTIENE TUTTE LE PRENOTAZIONI
+    // OTTIENE TUTTE LE PRENOTAZIONI CON NOME UTENTE
     public List<Booking> getAllBookings() {
         List<Booking> bookings = new ArrayList<>();
-        String sql = "SELECT * FROM bookings ORDER BY start_time DESC";
+        String sql = """
+            SELECT b.id, b.user_id, u.name AS user_name, b.studio_id,
+                   b.start_time, b.end_time, b.status
+            FROM bookings b
+            JOIN users u ON b.user_id = u.id
+            ORDER BY b.start_time DESC
+        """;
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -83,6 +87,7 @@ public class AdminDAO {
                 Booking b = new Booking(
                         rs.getLong("id"),
                         rs.getLong("user_id"),
+                        rs.getString("user_name"),
                         rs.getLong("studio_id"),
                         rs.getTimestamp("start_time").toLocalDateTime(),
                         rs.getTimestamp("end_time").toLocalDateTime(),
@@ -105,7 +110,6 @@ public class AdminDAO {
 
             stmt.setString(1, newStatus);
             stmt.setLong(2, bookingId);
-
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -121,7 +125,6 @@ public class AdminDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, bookingId);
-
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {

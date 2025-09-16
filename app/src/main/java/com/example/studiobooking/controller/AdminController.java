@@ -1,8 +1,6 @@
 package com.example.studiobooking.controller;
 
-import com.example.studiobooking.dao.UserDAO;
-import com.example.studiobooking.dao.StudioDAO;
-import com.example.studiobooking.dao.BookingDAO;
+import com.example.studiobooking.dao.AdminDAO;
 import com.example.studiobooking.model.Utente;
 import com.example.studiobooking.model.Studio;
 import com.example.studiobooking.model.Booking;
@@ -23,14 +21,11 @@ public class AdminController {
     @FXML private TextField adminNameField, adminEmailField;
     @FXML private PasswordField adminPasswordField;
     @FXML private Button createAdminButton, enableStudioButton, disableStudioButton;
+    @FXML private Button addBookingButton, editBookingButton, deleteBookingButton;
 
-    private UserDAO userDAO = new UserDAO();
-    private StudioDAO studioDAO = new StudioDAO();
-    private BookingDAO bookingDAO = new BookingDAO();
-
+    private AdminDAO adminDAO = new AdminDAO();
     private ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
     private ObservableList<Booking> bookingObservableList = FXCollections.observableArrayList();
-
     private Utente loggedAdmin;
 
     public void initAdmin(Utente admin) {
@@ -47,13 +42,27 @@ public class AdminController {
     }
 
     private void loadStudios() {
-        List<Studio> studios = studioDAO.getAllStudios();
+        List<Studio> studios = adminDAO.getAllStudios();
         studioObservableList.setAll(studios);
         studiosListView.setItems(studioObservableList);
+
+        studiosListView.setCellFactory(list -> new ListCell<>() {
+            @Override
+            protected void updateItem(Studio studio, boolean empty) {
+                super.updateItem(studio, empty);
+                if (empty || studio == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(studio.getName() + " (" + (studio.isActive() ? "Attivo" : "Disabilitato") + ")");
+                    setStyle(studio.isActive() ? "-fx-text-fill:black;" : "-fx-text-fill:gray; -fx-opacity:0.6;");
+                }
+            }
+        });
     }
 
     private void loadBookings() {
-        List<Booking> bookings = bookingDAO.getAllBookings();
+        List<Booking> bookings = adminDAO.getAllBookings();
         bookingObservableList.setAll(bookings);
         bookingsListView.setItems(bookingObservableList);
     }
@@ -70,25 +79,19 @@ public class AdminController {
             return;
         }
 
-        // Hash password con BCrypt
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        boolean success = adminDAO.createAdmin(name, email, hashedPassword);
 
-        boolean success = userDAO.createAdmin(name, email, hashedPassword);
-        if (success) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Admin creato con successo!");
-            alert.showAndWait();
-        } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Errore durante la creazione dell'admin.");
-            alert.showAndWait();
-        }
+        Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
+                success ? "Admin creato con successo!" : "Errore durante la creazione dell'admin.");
+        alert.showAndWait();
     }
 
     @FXML
     private void enableStudio() {
         Studio selected = studiosListView.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            selected.setActive(true);
-            studioDAO.updateStudioStatus(selected.getId(), true);
+        if (selected != null && !selected.isActive()) {
+            adminDAO.updateStudioStatus(selected.getId(), true);
             loadStudios();
         }
     }
@@ -96,10 +99,27 @@ public class AdminController {
     @FXML
     private void disableStudio() {
         Studio selected = studiosListView.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            selected.setActive(false);
-            studioDAO.updateStudioStatus(selected.getId(), false);
+        if (selected != null && selected.isActive()) {
+            adminDAO.updateStudioStatus(selected.getId(), false);
             loadStudios();
+        }
+    }
+
+    @FXML
+    private void deleteBooking() {
+        Booking selected = bookingsListView.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            adminDAO.deleteBooking(selected.getId());
+            loadBookings();
+        }
+    }
+
+    @FXML
+    private void editBooking() {
+        Booking selected = bookingsListView.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            boolean updated = adminDAO.updateBookingStatus(selected.getId(), "Modificato");
+            if (updated) loadBookings();
         }
     }
 }
