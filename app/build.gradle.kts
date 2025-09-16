@@ -1,7 +1,7 @@
 plugins {
     application
     java
-    id("org.openjfx.javafxplugin") version "0.1.0" // Plugin JavaFX
+    id("org.openjfx.javafxplugin") version "0.0.14" // Plugin JavaFX aggiornato
 }
 
 group = "com.studiobooking"
@@ -21,8 +21,14 @@ dependencies {
     // MySQL Connector
     implementation("mysql:mysql-connector-java:8.0.33")
 
+    // Connection Pool
     implementation("com.zaxxer:HikariCP:5.0.1")
+
+    // BCrypt
     implementation("org.mindrot:jbcrypt:0.4")
+
+    implementation("org.openjfx:javafx-controls:20.0.2")
+    implementation("org.openjfx:javafx-fxml:20.0.2")
 
     // JUnit 5 per i test
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
