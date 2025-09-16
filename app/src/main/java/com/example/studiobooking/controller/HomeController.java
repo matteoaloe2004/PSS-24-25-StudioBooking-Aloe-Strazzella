@@ -26,7 +26,6 @@ public class HomeController {
 
     @FXML private Label welcomeLabel;
     @FXML private Button loginButton, registerButton, bookButton, logoutButton, cancelBookingButton;
-
     @FXML private ListView<Studio> studiosListView;
     @FXML private ListView<Booking> userBookingsListView;
 
@@ -42,7 +41,7 @@ public class HomeController {
     public void initialize() {
         loadStudios();
 
-        // Azioni pulsanti
+        // Pulsanti
         loginButton.setOnAction(e -> openLogin());
         registerButton.setOnAction(e -> openRegister());
         bookButton.setOnAction(e -> openBooking());
@@ -53,6 +52,7 @@ public class HomeController {
         cancelBookingButton.setDisable(true);
 
         // Lista studi
+        studiosListView.setItems(studioObservableList);
         studiosListView.setCellFactory(list -> new ListCell<>() {
             @Override
             protected void updateItem(Studio studio, boolean empty) {
@@ -92,7 +92,6 @@ public class HomeController {
             loginButton.setVisible(false);
             registerButton.setVisible(false);
             logoutButton.setVisible(true);
-
             loadUserBookings();
         }
     }
@@ -122,7 +121,7 @@ public class HomeController {
 
         if (success) {
             showAlert(Alert.AlertType.INFORMATION, "Prenotazione annullata con successo.");
-            userBookingsObservableList.remove(selectedBooking); // aggiornamento realtime
+            userBookingsObservableList.remove(selectedBooking);
         } else {
             showAlert(Alert.AlertType.ERROR, "Non puoi annullare questa prenotazione (deve essere almeno 24 ore prima).");
         }
@@ -140,7 +139,6 @@ public class HomeController {
     private void loadStudios() {
         List<Studio> studios = studioDAO.getActiveStudios();
         studioObservableList.setAll(studios);
-        studiosListView.setItems(studioObservableList);
     }
 
     private void openLogin() {
@@ -148,7 +146,7 @@ public class HomeController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LoginView.fxml"));
             Parent root = loader.load();
             LoginController loginController = loader.getController();
-            loginController.setHomeController(this);
+            loginController.setHomeController(this); // passa HomeController al LoginController
 
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
@@ -187,9 +185,7 @@ public class HomeController {
             Parent root = loader.load();
             BookingController controller = loader.getController();
             controller.initBooking(utenteLoggato, selected);
-
-            // Passa il riferimento a HomeController per aggiornamento realtime
-            controller.setHomeController(this);
+            controller.setHomeController(this); // passa HomeController a BookingController
 
             Stage stage = new Stage();
             stage.setScene(new Scene(root, 800, 600));

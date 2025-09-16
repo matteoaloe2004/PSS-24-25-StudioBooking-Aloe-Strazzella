@@ -1,21 +1,29 @@
 package com.example.studiobooking.controller;
 
-import com.example.studiobooking.dao.EquipmentDAO;
-import com.example.studiobooking.dao.BookingDAO;
-import com.example.studiobooking.model.Utente;
-import com.example.studiobooking.model.Studio;
-import com.example.studiobooking.model.Equipment;
-
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.stage.Stage;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+
+import com.example.studiobooking.dao.BookingDAO;
+import com.example.studiobooking.dao.EquipmentDAO;
+import com.example.studiobooking.model.Equipment;
+import com.example.studiobooking.model.Studio;
+import com.example.studiobooking.model.Utente;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
+import javafx.stage.Stage;
 
 public class BookingController {
 
@@ -28,7 +36,7 @@ public class BookingController {
 
     private Utente utenteLoggato;
     private Studio studioSelezionato;
-    private HomeController homeController; // Riferimento alla home
+    private HomeController homeController;
 
     private EquipmentDAO equipmentDAO = new EquipmentDAO();
     private BookingDAO bookingDAO = new BookingDAO();
@@ -41,7 +49,6 @@ public class BookingController {
 
         studioLabel.setText("Prenotazione: " + studio.getName());
 
-        // Limita datePicker a 1 mese
         datePicker.setDayCellFactory(picker -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {
@@ -52,7 +59,6 @@ public class BookingController {
         });
         datePicker.setValue(LocalDate.now());
 
-        // Fasce orarie
         timeSlotComboBox.getItems().addAll(
                 "09:00 - 11:00",
                 "11:00 - 13:00",
@@ -61,7 +67,6 @@ public class BookingController {
         );
         timeSlotComboBox.getSelectionModel().selectFirst();
 
-        // Carica attrezzature
         loadEquipment();
     }
 
@@ -104,7 +109,6 @@ public class BookingController {
             showAlert(Alert.AlertType.WARNING, "Seleziona giorno e fascia oraria.");
             return;
         }
-
         if (selectedEquipment.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Seleziona almeno un pezzo di attrezzatura.");
             return;
@@ -134,11 +138,7 @@ public class BookingController {
             showAlert(Alert.AlertType.INFORMATION, "Prenotazione confermata per " +
                     studioSelezionato.getName() + " il " + date + " " + timeSlot);
 
-            // Aggiorna la lista prenotazioni nella HomeView in tempo reale
-            if (homeController != null) {
-                homeController.loadUserBookings();
-            }
-
+            if (homeController != null) homeController.loadUserBookings();
             goBackToHome();
         } else {
             showAlert(Alert.AlertType.ERROR, "Errore durante la prenotazione.");
