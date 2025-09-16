@@ -7,8 +7,10 @@ public class Utente {
     private String name;
     private String email;
     private String password;
-    private Timestamp createdAt; // timestamp registrazione
+    private Timestamp createdAt;
     private boolean isAdmin;
+
+    private LoyaltyCard loyaltyCard;
 
     public Utente(long id, String name, String email, String password, Timestamp createdAt, boolean isAdmin) {
         this.id = id;
@@ -17,9 +19,9 @@ public class Utente {
         this.password = password;
         this.createdAt = createdAt;
         this.isAdmin = isAdmin;
+        this.loyaltyCard = new LoyaltyCard();
     }
 
-    // getter e setter
     public long getId() { return id; }
     public String getName() { return name; }
     public String getEmail() { return email; }
@@ -33,4 +35,7 @@ public class Utente {
     public void setPassword(String password) { this.password = password; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
     public void setAdmin(boolean isAdmin) { this.isAdmin = isAdmin; }
+
+    public LoyaltyCard getLoyaltyCard() { return loyaltyCard; }
+    public void setLoyaltyCard(LoyaltyCard loyaltyCard) { this.loyaltyCard = loyaltyCard; }
 }

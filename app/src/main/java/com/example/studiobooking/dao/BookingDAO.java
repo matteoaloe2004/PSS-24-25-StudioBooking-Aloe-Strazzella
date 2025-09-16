@@ -87,7 +87,6 @@ public class BookingDAO {
         try (Connection conn = DatabaseConnection.getConnection()) {
             conn.setAutoCommit(false);
 
-            // Inserimento prenotazione
             long bookingId;
             try (PreparedStatement stmt = conn.prepareStatement(insertBooking, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setLong(1, userId);
@@ -105,7 +104,6 @@ public class BookingDAO {
                 }
             }
 
-            // Inserimento attrezzature
             try (PreparedStatement stmt = conn.prepareStatement(insertEquipment)) {
                 for (Equipment e : equipmentList) {
                     stmt.setLong(1, bookingId);
@@ -140,5 +138,26 @@ public class BookingDAO {
             e.printStackTrace();
             return false;
         }
+    }
+
+    // Nuovo metodo: conta le prenotazioni confermate di un utente (per loyalty card)
+    public int countBookingsByUser(long userId) {
+        int count = 0;
+        String sql = "SELECT COUNT(*) AS total FROM bookings WHERE user_id = ? AND status != 'CANCELLED'";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                count = rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return count;
     }
 }

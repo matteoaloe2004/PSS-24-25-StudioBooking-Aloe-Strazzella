@@ -19,7 +19,7 @@
         </VBox>
     </top>
 
-    <!-- Center: Lista studi e lista prenotazioni utente -->
+    <!-- Center: Lista studi, lista prenotazioni e loyalty card -->
     <center>
         <HBox spacing="20" style="-fx-padding: 20;">
             <!-- Lista studi -->
@@ -28,10 +28,13 @@
                 <ListView fx:id="studiosListView" prefWidth="400" prefHeight="500" style="-fx-background-color: white; -fx-font-size: 16px;"/>
             </VBox>
 
-            <!-- Lista prenotazioni utente -->
+            <!-- Lista prenotazioni utente + loyalty card -->
             <VBox spacing="10" HBox.hgrow="ALWAYS" style="-fx-background-color: #ecf0f1; -fx-padding: 15; -fx-border-color: #bdc3c7; -fx-border-width: 2px; -fx-border-radius: 10px;">
                 <Label text="Le Tue Prenotazioni:" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
-                <ListView fx:id="userBookingsListView" prefWidth="400" prefHeight="500" style="-fx-background-color: white; -fx-font-size: 14px;"/>
+                <ListView fx:id="userBookingsListView" prefWidth="400" prefHeight="300" style="-fx-background-color: white; -fx-font-size: 14px;"/>
+                
+                <!-- Sezione Loyalty Card inclusa -->
+                <fx:include source="LoyaltyCardView.fxml" fx:id="loyaltyCardInclude"/>
             </VBox>
         </HBox>
     </center>

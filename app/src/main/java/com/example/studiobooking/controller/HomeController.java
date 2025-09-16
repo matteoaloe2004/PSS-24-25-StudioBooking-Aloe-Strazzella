@@ -10,12 +10,12 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.time.LocalDateTime;
 
 public class HomeController {
 
@@ -23,6 +23,12 @@ public class HomeController {
     @FXML private Button loginButton, registerButton, bookButton, logoutButton, cancelBookingButton;
     @FXML private ListView<Studio> studiosListView;
     @FXML private ListView<Booking> userBookingsListView;
+
+    // Nodo root della loyalty card inclusa
+    @FXML private VBox loyaltyCardInclude;
+
+    // Controller reale della loyalty card
+    private LoyaltyCardController loyaltyCardController;
 
     private StudioDAO studioDAO = new StudioDAO();
     private BookingDAO bookingDAO = new BookingDAO();
@@ -36,7 +42,6 @@ public class HomeController {
     public void initialize() {
         loadStudios();
 
-        // Pulsanti
         loginButton.setOnAction(e -> openLogin());
         registerButton.setOnAction(e -> openRegister());
         bookButton.setOnAction(e -> openBooking());
@@ -46,21 +51,16 @@ public class HomeController {
         logoutButton.setVisible(false);
         cancelBookingButton.setDisable(true);
 
-        // Lista studi
         studiosListView.setItems(studioObservableList);
         studiosListView.setCellFactory(list -> new ListCell<>() {
             @Override
             protected void updateItem(Studio studio, boolean empty) {
                 super.updateItem(studio, empty);
                 if (empty || studio == null) setText(null);
-                else {
-                    setText(studio.getName() + "\n" + studio.getDescription());
-                    setStyle("-fx-font-size: 14px; -fx-padding: 6px;");
-                }
+                else setText(studio.getName() + "\n" + studio.getDescription());
             }
         });
 
-        // Lista prenotazioni utente
         userBookingsListView.setItems(userBookingsObservableList);
         userBookingsListView.setCellFactory(list -> new ListCell<>() {
             @Override
@@ -74,10 +74,20 @@ public class HomeController {
             }
         });
 
-        // Abilita/disabilita pulsante Annulla
         userBookingsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
             cancelBookingButton.setDisable(newSel == null || !canCancel(newSel));
         });
+
+        // Carica il controller della loyalty card dal nodo incluso
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LoyaltyCardView.fxml"));
+            loader.setRoot(loyaltyCardInclude);
+            loader.setControllerFactory(param -> new LoyaltyCardController());
+            loader.load();
+            loyaltyCardController = loader.getController();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void setUtenteLoggato(Utente utente) {
@@ -88,6 +98,9 @@ public class HomeController {
             registerButton.setVisible(false);
             logoutButton.setVisible(true);
             loadUserBookings();
+            if (loyaltyCardController != null) {
+                loyaltyCardController.setUtente(utente);
+            }
         }
     }
 
@@ -95,7 +108,6 @@ public class HomeController {
         if (utenteLoggato == null) return;
         List<Booking> bookings = bookingDAO.getBookingsByUser(utenteLoggato.getId());
         userBookingsObservableList.setAll(bookings);
-
         Booking selected = userBookingsListView.getSelectionModel().getSelectedItem();
         cancelBookingButton.setDisable(selected == null || !canCancel(selected));
     }
@@ -111,14 +123,12 @@ public class HomeController {
             showAlert(Alert.AlertType.WARNING, "Seleziona una prenotazione da annullare.");
             return;
         }
-
         boolean success = bookingDAO.cancelBooking(selectedBooking.getId());
-
         if (success) {
             showAlert(Alert.AlertType.INFORMATION, "Prenotazione annullata con successo.");
             userBookingsObservableList.remove(selectedBooking);
         } else {
-            showAlert(Alert.AlertType.ERROR, "Non puoi annullare questa prenotazione (deve essere almeno 24 ore prima).");
+            showAlert(Alert.AlertType.ERROR, "Non puoi annullare questa prenotazione (minimo 24h prima).");
         }
     }
 
@@ -129,6 +139,7 @@ public class HomeController {
         registerButton.setVisible(true);
         logoutButton.setVisible(false);
         userBookingsObservableList.clear();
+        if (loyaltyCardController != null) loyaltyCardController.setUtente(null);
     }
 
     private void loadStudios() {
@@ -141,27 +152,23 @@ public class HomeController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LoginView.fxml"));
             Parent root = loader.load();
             LoginController loginController = loader.getController();
-            loginController.setHomeController(this); // passa HomeController al LoginController
+            loginController.setHomeController(this);
 
             Stage stage = new Stage();
-            stage.setScene(new Scene(root));
+            stage.setScene(new javafx.scene.Scene(root));
             stage.setTitle("Login");
             stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        } catch (Exception ex) { ex.printStackTrace(); }
     }
 
     private void openRegister() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RegisterView.fxml"));
             Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load(), 400, 300));
+            stage.setScene(new javafx.scene.Scene(loader.load(), 400, 300));
             stage.setTitle("Registrazione");
             stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        } catch (Exception ex) { ex.printStackTrace(); }
     }
 
     private void openBooking() {
@@ -174,25 +181,29 @@ public class HomeController {
             showAlert(Alert.AlertType.ERROR, "Devi essere loggato per prenotare uno studio.");
             return;
         }
-
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/BookingView.fxml"));
             Parent root = loader.load();
             BookingController controller = loader.getController();
             controller.initBooking(utenteLoggato, selected);
-            controller.setHomeController(this); // passa HomeController a BookingController
+            controller.setHomeController(this);
 
             Stage stage = new Stage();
-            stage.setScene(new Scene(root, 800, 600));
+            stage.setScene(new javafx.scene.Scene(root, 800, 600));
             stage.setTitle("Prenotazione Studio: " + selected.getName());
             stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        } catch (Exception ex) { ex.printStackTrace(); }
     }
 
     private void showAlert(Alert.AlertType type, String message) {
         Alert alert = new Alert(type, message);
         alert.showAndWait();
+    }
+
+    // Metodo pubblico per aggiungere una prenotazione alla loyalty card
+    public void addLoyaltyBooking() {
+        if (loyaltyCardController != null) {
+            loyaltyCardController.addBooking();
+        }
     }
 }
