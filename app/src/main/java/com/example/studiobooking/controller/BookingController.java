@@ -89,64 +89,68 @@ public class BookingController {
         });
     }
 
-    @FXML
     public void initialize() {
-        confirmButton.setOnAction(e -> confirmBooking());
-        backButton.setOnAction(e -> goBackToHome());
+    confirmButton.setOnAction(e -> confirmBooking());
+    backButton.setOnAction(e -> goBackToHome());
+}
+
+private void goBackToHome() {
+    Stage stage = (Stage) backButton.getScene().getWindow();
+    stage.close();
+}
+
+private void confirmBooking() {
+    LocalDate date = datePicker.getValue();
+    String timeSlot = timeSlotComboBox.getSelectionModel().getSelectedItem();
+    List<Equipment> selectedEquipment = equipmentListView.getSelectionModel().getSelectedItems();
+
+    if (date == null || timeSlot == null) {
+        showAlert(Alert.AlertType.WARNING, "Seleziona giorno e fascia oraria.");
+        return;
+    }
+    if (selectedEquipment.isEmpty()) {
+        showAlert(Alert.AlertType.WARNING, "Seleziona almeno un pezzo di attrezzatura.");
+        return;
     }
 
-    private void goBackToHome() {
-        Stage stage = (Stage) backButton.getScene().getWindow();
-        stage.close();
+    String[] times = timeSlot.split(" - ");
+    LocalTime startTime = LocalTime.parse(times[0]);
+    LocalTime endTime = LocalTime.parse(times[1]);
+
+    LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
+    LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
+
+    if (!bookingDAO.isAvailable(studioSelezionato.getId(), startDateTime, endDateTime)) {
+        showAlert(Alert.AlertType.ERROR, "Lo studio non è disponibile in questa fascia oraria.");
+        return;
     }
 
-    private void confirmBooking() {
-        LocalDate date = datePicker.getValue();
-        String timeSlot = timeSlotComboBox.getSelectionModel().getSelectedItem();
-        List<Equipment> selectedEquipment = equipmentListView.getSelectionModel().getSelectedItems();
+    boolean success = bookingDAO.createBooking(
+            utenteLoggato.getId(),
+            studioSelezionato.getId(),
+            startDateTime,
+            endDateTime,
+            selectedEquipment
+    );
 
-        if (date == null || timeSlot == null) {
-            showAlert(Alert.AlertType.WARNING, "Seleziona giorno e fascia oraria.");
-            return;
-        }
-        if (selectedEquipment.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Seleziona almeno un pezzo di attrezzatura.");
-            return;
-        }
+    if (success) {
+        showAlert(Alert.AlertType.INFORMATION, "Prenotazione confermata per " +
+                studioSelezionato.getName() + " il " + date + " " + timeSlot);
 
-        String[] times = timeSlot.split(" - ");
-        LocalTime startTime = LocalTime.parse(times[0]);
-        LocalTime endTime = LocalTime.parse(times[1]);
-
-        LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
-        LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
-
-        if (!bookingDAO.isAvailable(studioSelezionato.getId(), startDateTime, endDateTime)) {
-            showAlert(Alert.AlertType.ERROR, "Lo studio non è disponibile in questa fascia oraria.");
-            return;
+        // Aggiorna la lista delle prenotazioni e la loyalty card nella Home
+        if (homeController != null) {
+            homeController.loadUserBookings();   // aggiorna la lista prenotazioni
+            homeController.loadLoyaltyCard();    // aggiorna i label loyalty
         }
 
-        boolean success = bookingDAO.createBooking(
-                utenteLoggato.getId(),
-                studioSelezionato.getId(),
-                startDateTime,
-                endDateTime,
-                selectedEquipment
-        );
-
-        if (success) {
-            showAlert(Alert.AlertType.INFORMATION, "Prenotazione confermata per " +
-                    studioSelezionato.getName() + " il " + date + " " + timeSlot);
-
-            if (homeController != null) homeController.loadUserBookings();
-            goBackToHome();
-        } else {
-            showAlert(Alert.AlertType.ERROR, "Errore durante la prenotazione.");
-        }
+        goBackToHome();
+    } else {
+        showAlert(Alert.AlertType.ERROR, "Errore durante la prenotazione.");
     }
+}
 
-    private void showAlert(Alert.AlertType type, String message) {
-        Alert alert = new Alert(type, message);
-        alert.showAndWait();
-    }
+private void showAlert(Alert.AlertType type, String message) {
+    Alert alert = new Alert(type, message);
+    alert.showAndWait();
+}
 }

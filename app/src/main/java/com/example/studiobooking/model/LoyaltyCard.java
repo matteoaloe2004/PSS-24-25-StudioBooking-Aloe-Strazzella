@@ -1,24 +1,30 @@
 package com.example.studiobooking.model;
 
-public class LoyaltyCard {
-    private long id;
-    private long userId;
-    private int totalHours;
-    private int discountLevel;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 
-    public LoyaltyCard(long id, long userId, int totalHours, int discountLevel) {
+public class LoyaltyCard {
+
+    private final long id;
+    private final long userId;
+    private final IntegerProperty totalBooking = new SimpleIntegerProperty(0);
+    private final IntegerProperty discountLevel = new SimpleIntegerProperty(0);
+
+    public LoyaltyCard(long id, long userId, int totalBooking, int discountLevel) {
         this.id = id;
         this.userId = userId;
-        this.totalHours = totalHours;
-        this.discountLevel = discountLevel;
+        this.totalBooking.set(totalBooking);
+        this.discountLevel.set(discountLevel);
     }
 
     public long getId() { return id; }
-    public void setId(long id) { this.id = id; }
     public long getUserId() { return userId; }
-    public void setUserId(long userId) { this.userId = userId; }
-    public int getTotalHours() { return totalHours; }
-    public void setTotalHours(int totalHours) { this.totalHours = totalHours; }
-    public int getDiscountLevel() { return discountLevel; }
-    public void setDiscountLevel(int discountLevel) { this.discountLevel = discountLevel; }
+
+    public int getTotalBooking() { return totalBooking.get(); }
+    public void setTotalBooking(int value) { totalBooking.set(value); }
+    public IntegerProperty totalBookingProperty() { return totalBooking; }
+
+    public int getDiscountLevel() { return discountLevel.get(); }
+    public void setDiscountLevel(int value) { discountLevel.set(value); }
+    public IntegerProperty discountLevelProperty() { return discountLevel; }
 }

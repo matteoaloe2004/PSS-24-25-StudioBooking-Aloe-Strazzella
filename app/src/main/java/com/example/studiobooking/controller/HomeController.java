@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.studiobooking.dao.BookingDAO;
+import com.example.studiobooking.dao.LoyaltyCardDAO;
 import com.example.studiobooking.dao.StudioDAO;
 import com.example.studiobooking.model.Booking;
+import com.example.studiobooking.model.LoyaltyCard;
 import com.example.studiobooking.model.Studio;
 import com.example.studiobooking.model.Utente;
 
@@ -29,13 +31,18 @@ public class HomeController {
     @FXML private ListView<Studio> studiosListView;
     @FXML private ListView<Booking> userBookingsListView;
 
+    @FXML private Label totalBookingsLabel;
+    @FXML private Label discountLabel;
+
     private final StudioDAO studioDAO = new StudioDAO();
     private final BookingDAO bookingDAO = new BookingDAO();
+    private final LoyaltyCardDAO loyaltyCardDAO = new LoyaltyCardDAO();
 
     private final ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
     private final ObservableList<Booking> userBookingsObservableList = FXCollections.observableArrayList();
 
     private Utente utenteLoggato;
+    private LoyaltyCard loyaltyCard;
 
     @FXML
     public void initialize() {
@@ -92,9 +99,53 @@ public class HomeController {
             loginButton.setVisible(false);
             registerButton.setVisible(false);
             logoutButton.setVisible(true);
-            loadUserBookings();
+
+            loadUserBookings();   // carica le prenotazioni
+            refreshLoyaltyCard();    // carica la loyalty card e aggiorna i label
         }
     }
+
+    public void loadLoyaltyCard() {
+        if (utenteLoggato == null) return;
+
+        // Recupera loyalty card; se non esiste la crea
+        loyaltyCard = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
+        if (loyaltyCard == null) {
+            loyaltyCardDAO.createLoyaltyCard(utenteLoggato.getId());
+            loyaltyCard = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
+        }
+
+        if (loyaltyCard != null) {
+            // Aggiorna in tempo reale
+            int totalBookings = bookingDAO.getBookingsByUser(utenteLoggato.getId()).size();
+            loyaltyCardDAO.updateDiscountLevel(utenteLoggato.getId(), totalBookings);
+
+            totalBookingsLabel.setText("Prenotazioni totali: " + totalBookings);
+            discountLabel.setText("Sconto attuale: " + Math.min((totalBookings / 3) * 5, 30) + "%");
+        }
+    }
+
+    private void refreshLoyaltyCard() {
+    if (utenteLoggato == null) return;
+
+    try {
+        // Conta solo le prenotazioni effettive (non cancellate)
+        int totalBookings = bookingDAO.getBookingsByUser(utenteLoggato.getId())
+                                      .stream()
+                                      .filter(b -> !"CANCELLED".equalsIgnoreCase(b.getStatus()))
+                                      .toArray().length;
+
+        // Aggiorna loyalty card
+        loyaltyCardDAO.updateDiscountLevel(utenteLoggato.getId(), totalBookings);
+
+        // Aggiorna i label in GUI
+        totalBookingsLabel.setText("Prenotazioni totali: " + totalBookings);
+        discountLabel.setText("Sconto attuale: " + Math.min((totalBookings / 3) * 5, 30) + "%");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
 
     public void loadUserBookings() {
         if (utenteLoggato == null) return;
@@ -122,6 +173,8 @@ public class HomeController {
         if (success) {
             showAlert(Alert.AlertType.INFORMATION, "Prenotazione annullata con successo.");
             userBookingsObservableList.remove(selectedBooking);
+            // Aggiorna loyalty card dopo cancellazione
+            loadLoyaltyCard();
         } else {
             showAlert(Alert.AlertType.ERROR, "Non puoi annullare questa prenotazione (deve essere almeno 24 ore prima).");
         }
@@ -134,6 +187,8 @@ public class HomeController {
         registerButton.setVisible(true);
         logoutButton.setVisible(false);
         userBookingsObservableList.clear();
+        totalBookingsLabel.setText("Prenotazioni totali: 0");
+        discountLabel.setText("Sconto attuale: 0%");
     }
 
     private void loadStudios() {

@@ -2,6 +2,7 @@ package com.example.studiobooking.controller;
 
 import java.sql.Timestamp;
 
+import com.example.studiobooking.dao.LoyaltyCardDAO;
 import com.example.studiobooking.dao.UserDAO;
 import com.example.studiobooking.model.Utente;
 
@@ -36,57 +37,65 @@ public class RegisterController {
         registerButton.setOnAction(e -> registerUser());
     }
 
-    private void registerUser() {
-        String email = emailField.getText().trim().toLowerCase(); // normalizza email
-        String password = passwordField.getText().trim();
-        String confirmPassword = confirmPasswordField.getText().trim();
-        String name = nameField.getText().trim();
+private void registerUser() {
+    String email = emailField.getText().trim().toLowerCase(); // normalizza email
+    String password = passwordField.getText().trim();
+    String confirmPassword = confirmPasswordField.getText().trim();
+    String name = nameField.getText().trim();
 
-        if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || name.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Tutti i campi sono obbligatori.");
-            return;
-        }
-
-        // Validazione email
-        if (!isValidEmail(email)) {
-            showAlert(Alert.AlertType.WARNING, "Inserisci un'email valida.");
-            return;
-        }
-
-        if (password.length() < 6) {
-            showAlert(Alert.AlertType.WARNING, "La password deve avere almeno 6 caratteri.");
-            return;
-        }
-
-        if (!password.equals(confirmPassword)) {
-            showAlert(Alert.AlertType.WARNING, "Le password non coincidono.");
-            return;
-        }
-
-        if (userDAO.emailExists(email)) {
-            showAlert(Alert.AlertType.ERROR, "Email già registrata!");
-            return;
-        }
-
-        // Creazione utente con PASSWORD IN CHIARO, UserDAO farà l'hash
-        Utente utente = new Utente(
-                0,                      // id = 0 per nuovo utente
-                name,                   // name
-                email,                  // email
-                password,               // password in chiaro
-                new Timestamp(System.currentTimeMillis()),
-                false                   // isAdmin = false
-        );
-
-        boolean success = userDAO.register(utente);
-        if (success) {
-            showAlert(Alert.AlertType.INFORMATION, "Registrazione completata! Ora puoi fare login.");
-            Stage stage = (Stage) registerButton.getScene().getWindow();
-            stage.close();
-        } else {
-            showAlert(Alert.AlertType.ERROR, "Errore durante la registrazione.");
-        }
+    if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || name.isEmpty()) {
+        showAlert(Alert.AlertType.WARNING, "Tutti i campi sono obbligatori.");
+        return;
     }
+
+    // Validazione email
+    if (!isValidEmail(email)) {
+        showAlert(Alert.AlertType.WARNING, "Inserisci un'email valida.");
+        return;
+    }
+
+    if (password.length() < 6) {
+        showAlert(Alert.AlertType.WARNING, "La password deve avere almeno 6 caratteri.");
+        return;
+    }
+
+    if (!password.equals(confirmPassword)) {
+        showAlert(Alert.AlertType.WARNING, "Le password non coincidono.");
+        return;
+    }
+
+    if (userDAO.emailExists(email)) {
+        showAlert(Alert.AlertType.ERROR, "Email già registrata!");
+        return;
+    }
+
+    // Creazione utente con PASSWORD IN CHIARO, UserDAO farà l'hash
+    Utente utente = new Utente(
+            0,                      // id = 0 per nuovo utente
+            name,                   // name
+            email,                  // email
+            password,               // password in chiaro
+            new Timestamp(System.currentTimeMillis()),
+            false                   // isAdmin = false
+    );
+
+    boolean success = userDAO.register(utente);
+    if (success) {
+        // Ottieni l'ID appena creato dell'utente
+        long newUserId = userDAO.getUserByEmail(email).getId();
+
+        // Crea automaticamente la loyalty card
+        LoyaltyCardDAO loyaltyCardDAO = new LoyaltyCardDAO();
+        loyaltyCardDAO.createLoyaltyCard(newUserId);
+
+        showAlert(Alert.AlertType.INFORMATION, "Registrazione completata! Ora puoi fare login.");
+        Stage stage = (Stage) registerButton.getScene().getWindow();
+        stage.close();
+    } else {
+        showAlert(Alert.AlertType.ERROR, "Errore durante la registrazione.");
+    }
+}
+
 
     // Metodo helper per validare email
     private boolean isValidEmail(String email) {
