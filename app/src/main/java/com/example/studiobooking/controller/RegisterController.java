@@ -29,7 +29,7 @@ public class RegisterController {
     @FXML
     private Button registerButton;
 
-    private UserDAO userDAO = new UserDAO();
+    private final UserDAO userDAO = new UserDAO();
 
     @FXML
     public void initialize() {

@@ -38,10 +38,10 @@ public class BookingController {
     private Studio studioSelezionato;
     private HomeController homeController;
 
-    private EquipmentDAO equipmentDAO = new EquipmentDAO();
-    private BookingDAO bookingDAO = new BookingDAO();
+    private final EquipmentDAO equipmentDAO = new EquipmentDAO();
+    private final BookingDAO bookingDAO = new BookingDAO();
 
-    private ObservableList<Equipment> equipmentObservableList = FXCollections.observableArrayList();
+    private final ObservableList<Equipment> equipmentObservableList = FXCollections.observableArrayList();
 
     public void initBooking(Utente utente, Studio studio) {
         this.utenteLoggato = utente;

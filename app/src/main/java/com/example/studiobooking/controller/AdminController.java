@@ -59,19 +59,17 @@ public class AdminController {
     @FXML private PasswordField adminPasswordField;
     @FXML private Button createAdminButton;
 
-    private UserDAO userDAO = new UserDAO();
-    private StudioDAO studioDAO = new StudioDAO();
-    private BookingDAO bookingDAO = new BookingDAO();
-    private EquipmentDAO equipmentDAO = new EquipmentDAO();
+    private final UserDAO userDAO = new UserDAO();
+    private final StudioDAO studioDAO = new StudioDAO();
+    private final BookingDAO bookingDAO = new BookingDAO();
+    private final EquipmentDAO equipmentDAO = new EquipmentDAO();
 
-    private ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
-    private ObservableList<Booking> bookingObservableList = FXCollections.observableArrayList();
-    private ObservableList<Equipment> equipmentObservableList = FXCollections.observableArrayList();
-    private Utente loggedAdmin;
-
+    private final ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
+    private final ObservableList<Booking> bookingObservableList = FXCollections.observableArrayList();
+    private final ObservableList<Equipment> equipmentObservableList = FXCollections.observableArrayList();
+    
     // ------------------- INIT -------------------
     public void initAdmin(Utente admin) {
-        this.loggedAdmin = admin;
         if (!admin.isAdmin()) {
             showAlert(Alert.AlertType.ERROR, "Non hai permessi di admin.");
             Stage stage = (Stage) createAdminButton.getScene().getWindow();

@@ -19,7 +19,7 @@ public class LoginController {
     @FXML private PasswordField passwordField;
     @FXML private Button loginButton, registerButton;
 
-    private UserDAO userDAO = new UserDAO();
+    private final UserDAO userDAO = new UserDAO();
 
     // Campo per collegare la Home esistente
     private HomeController homeController;

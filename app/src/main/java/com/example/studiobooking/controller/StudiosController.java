@@ -25,8 +25,8 @@ public class StudiosController {
     @FXML
     private Label welcomeLabel;
 
-    private StudioDAO studioDAO = new StudioDAO();
-    private ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
+    private final StudioDAO studioDAO = new StudioDAO();
+    private final ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
 
     private Utente utenteLoggato;
 

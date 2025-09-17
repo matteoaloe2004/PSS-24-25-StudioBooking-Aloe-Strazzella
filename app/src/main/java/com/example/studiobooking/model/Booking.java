@@ -4,12 +4,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Booking {
-    private long id;
-    private long userId;
-    private String userName; // 🔹 nuovo campo
-    private long studioId;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private final long id;
+    private final long userId;
+    private String userName; 
+    private final long studioId;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
     private String status;
 
     public Booking(long id, long userId, String userName, long studioId,

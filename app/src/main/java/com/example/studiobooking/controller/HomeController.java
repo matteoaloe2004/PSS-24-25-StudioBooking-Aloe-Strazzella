@@ -29,11 +29,11 @@ public class HomeController {
     @FXML private ListView<Studio> studiosListView;
     @FXML private ListView<Booking> userBookingsListView;
 
-    private StudioDAO studioDAO = new StudioDAO();
-    private BookingDAO bookingDAO = new BookingDAO();
+    private final StudioDAO studioDAO = new StudioDAO();
+    private final BookingDAO bookingDAO = new BookingDAO();
 
-    private ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
-    private ObservableList<Booking> userBookingsObservableList = FXCollections.observableArrayList();
+    private final ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
+    private final ObservableList<Booking> userBookingsObservableList = FXCollections.observableArrayList();
 
     private Utente utenteLoggato;
 
