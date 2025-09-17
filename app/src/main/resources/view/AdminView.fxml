@@ -11,6 +11,8 @@
     <Label text="PANNELLO DI CONTROLLO ADMIN"
            style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2a4d7a;"/>
 
+        <Label fx:id="welcomeLabel" style="-fx-font-size: 18; -fx-font-weight: bold;" />
+
     <!-- Sezione principale con due colonne -->
     <HBox spacing="30" alignment="TOP_CENTER">
 

@@ -1,12 +1,16 @@
 package com.example.studiobooking.controller;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import com.example.studiobooking.dao.AdminDAO;
+import com.example.studiobooking.dao.BookingDAO;
+import com.example.studiobooking.dao.EquipmentDAO;
+import com.example.studiobooking.dao.StudioDAO;
+import com.example.studiobooking.dao.UserDAO;
 import com.example.studiobooking.model.Booking;
 import com.example.studiobooking.model.Equipment;
 import com.example.studiobooking.model.Studio;
@@ -35,6 +39,9 @@ import javafx.stage.Stage;
 
 public class AdminController {
 
+    
+
+    @FXML private Label welcomeLabel;
     // Prenotazioni
     @FXML private ListView<Booking> bookingsListView;
     @FXML private Button addBookingButton, editBookingButton, deleteBookingButton;
@@ -52,7 +59,11 @@ public class AdminController {
     @FXML private PasswordField adminPasswordField;
     @FXML private Button createAdminButton;
 
-    private AdminDAO adminDAO = new AdminDAO();
+    private UserDAO userDAO = new UserDAO();
+    private StudioDAO studioDAO = new StudioDAO();
+    private BookingDAO bookingDAO = new BookingDAO();
+    private EquipmentDAO equipmentDAO = new EquipmentDAO();
+
     private ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
     private ObservableList<Booking> bookingObservableList = FXCollections.observableArrayList();
     private ObservableList<Equipment> equipmentObservableList = FXCollections.observableArrayList();
@@ -67,6 +78,12 @@ public class AdminController {
             stage.close();
             return;
         }
+
+        // Mostra il welcome sotto il titolo
+    if (welcomeLabel != null) {
+        welcomeLabel.setText("Benvenuto, " + admin.getName() + "!");
+    }
+
         loadStudios();
         loadBookings();
         loadEquipment();
@@ -74,7 +91,7 @@ public class AdminController {
 
     // ------------------- STUDI -------------------
     private void loadStudios() {
-        List<Studio> studios = adminDAO.getAllStudios();
+        List<Studio> studios = studioDAO.getAllStudios();
         studioObservableList.setAll(studios);
         studiosListView.setItems(studioObservableList);
 
@@ -97,7 +114,7 @@ public class AdminController {
         Studio selected = studiosListView.getSelectionModel().getSelectedItem();
         if (selected == null) { showAlert(Alert.AlertType.WARNING, "Seleziona uno studio."); return; }
         if (selected.isActive()) { showAlert(Alert.AlertType.INFORMATION, "Studio già abilitato."); return; }
-        boolean updated = adminDAO.updateStudioStatus(selected.getId(), true);
+        boolean updated = studioDAO.updateStudioStatus(selected.getId(), true);
         showAlert(updated ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
                 updated ? "Studio abilitato!" : "Errore.");
         loadStudios();
@@ -107,7 +124,7 @@ public class AdminController {
         Studio selected = studiosListView.getSelectionModel().getSelectedItem();
         if (selected == null) { showAlert(Alert.AlertType.WARNING, "Seleziona uno studio."); return; }
         if (!selected.isActive()) { showAlert(Alert.AlertType.INFORMATION, "Studio già disabilitato."); return; }
-        boolean updated = adminDAO.updateStudioStatus(selected.getId(), false);
+        boolean updated = studioDAO.updateStudioStatus(selected.getId(), false);
         showAlert(updated ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
                 updated ? "Studio disabilitato!" : "Errore.");
         loadStudios();
@@ -115,7 +132,7 @@ public class AdminController {
 
     // ------------------- PRENOTAZIONI -------------------
     private void loadBookings() {
-        List<Booking> bookings = adminDAO.getAllBookings();
+        List<Booking> bookings = bookingDAO.getAllBookings();
         bookingObservableList.setAll(bookings);
         bookingsListView.setItems(bookingObservableList);
     }
@@ -123,7 +140,7 @@ public class AdminController {
     @FXML private void addBooking() {
         BookingData data = showBookingDialog(null);
         if (data != null) {
-            boolean success = adminDAO.addBooking(data.userId, data.studioId, data.start, data.end, data.status);
+            boolean success = bookingDAO.createBooking(data.userId, data.studioId, data.start, data.end, new ArrayList<>());
             showAlert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
                       success ? "Prenotazione aggiunta!" : "Errore o conflitto.");
             loadBookings();
@@ -135,7 +152,7 @@ public class AdminController {
         if (selected == null) { showAlert(Alert.AlertType.WARNING, "Seleziona una prenotazione."); return; }
         BookingData data = showBookingDialog(selected);
         if (data != null) {
-            boolean success = adminDAO.updateBooking(selected.getId(), data.studioId, data.start, data.end, data.status);
+            boolean success = bookingDAO.updateBooking(selected.getId(), data.studioId, data.start, data.end, data.status);
             showAlert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
                       success ? "Prenotazione modificata!" : "Errore o conflitto.");
             loadBookings();
@@ -145,55 +162,56 @@ public class AdminController {
     @FXML private void deleteBooking() {
         Booking selected = bookingsListView.getSelectionModel().getSelectedItem();
         if (selected == null) { showAlert(Alert.AlertType.WARNING, "Seleziona una prenotazione."); return; }
-        boolean deleted = adminDAO.deleteBooking(selected.getId());
+        boolean deleted = bookingDAO.deleteBooking(selected.getId());
         showAlert(deleted ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
                   deleted ? "Prenotazione rimossa!" : "Errore.");
         loadBookings();
     }
 
     private BookingData showBookingDialog(Booking booking) {
-        Dialog<BookingData> dialog = new Dialog<>();
-        dialog.setTitle(booking == null ? "Aggiungi Prenotazione" : "Modifica Prenotazione");
-        ButtonType okButton = new ButtonType("Conferma", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(okButton, ButtonType.CANCEL);
+    Dialog<BookingData> dialog = new Dialog<>();
+    dialog.setTitle(booking == null ? "Aggiungi Prenotazione" : "Modifica Prenotazione");
+    ButtonType okButton = new ButtonType("Conferma", ButtonBar.ButtonData.OK_DONE);
+    dialog.getDialogPane().getButtonTypes().addAll(okButton, ButtonType.CANCEL);
 
-        GridPane grid = new GridPane(); grid.setHgap(10); grid.setVgap(10); grid.setPadding(new Insets(20,150,10,10));
+    GridPane grid = new GridPane(); 
+    grid.setHgap(10); grid.setVgap(10); 
+    grid.setPadding(new Insets(20,150,10,10));
 
-        ComboBox<Studio> studioCombo = new ComboBox<>(studioObservableList);
-        DatePicker startDate = new DatePicker();
-        TextField startTime = new TextField(); // HH:mm
-        TextField endTime = new TextField();   // HH:mm
-        TextField statusField = new TextField();
+    ComboBox<Studio> studioCombo = new ComboBox<>(studioObservableList);
+    DatePicker startDate = new DatePicker();
+    TextField startTime = new TextField(); // HH:mm
+    TextField endTime = new TextField();   // HH:mm
 
-        if (booking != null) {
-            studioCombo.getSelectionModel().select(
-                studioObservableList.stream().filter(s -> s.getId() == booking.getStudioId()).findFirst().orElse(null));
-            startDate.setValue(booking.getStartTime().toLocalDate());
-            startTime.setText(booking.getStartTime().toLocalTime().toString());
-            endTime.setText(booking.getEndTime().toLocalTime().toString());
-            statusField.setText(booking.getStatus());
-        }
-
-        grid.add(new Label("Studio:"),0,0); grid.add(studioCombo,1,0);
-        grid.add(new Label("Data Inizio:"),0,1); grid.add(startDate,1,1);
-        grid.add(new Label("Ora Inizio (HH:mm):"),0,2); grid.add(startTime,1,2);
-        grid.add(new Label("Ora Fine (HH:mm):"),0,3); grid.add(endTime,1,3);
-        grid.add(new Label("Stato:"),0,4); grid.add(statusField,1,4);
-
-        dialog.getDialogPane().setContent(grid);
-        dialog.setResultConverter(btn -> {
-            if (btn == okButton) {
-                Studio selectedStudio = studioCombo.getSelectionModel().getSelectedItem();
-                if (selectedStudio == null) return null;
-                LocalDateTime start = LocalDateTime.parse(startDate.getValue() + "T" + startTime.getText());
-                LocalDateTime end = LocalDateTime.parse(startDate.getValue() + "T" + endTime.getText());
-                return new BookingData(1, selectedStudio.getId(), start, end, "confirmed");
-            }
-            return null;
-        });
-
-        return dialog.showAndWait().orElse(null);
+    if (booking != null) {
+        studioCombo.getSelectionModel().select(
+            studioObservableList.stream().filter(s -> s.getId() == booking.getStudioId()).findFirst().orElse(null));
+        startDate.setValue(booking.getStartTime().toLocalDate());
+        startTime.setText(booking.getStartTime().toLocalTime().toString());
+        endTime.setText(booking.getEndTime().toLocalTime().toString());
     }
+
+    grid.add(new Label("Studio:"),0,0); grid.add(studioCombo,1,0);
+    grid.add(new Label("Data Inizio:"),0,1); grid.add(startDate,1,1);
+    grid.add(new Label("Ora Inizio (HH:mm):"),0,2); grid.add(startTime,1,2);
+    grid.add(new Label("Ora Fine (HH:mm):"),0,3); grid.add(endTime,1,3);
+
+    dialog.getDialogPane().setContent(grid);
+
+    dialog.setResultConverter(btn -> {
+        if (btn == okButton) {
+            Studio selectedStudio = studioCombo.getSelectionModel().getSelectedItem();
+            if (selectedStudio == null) return null;
+            LocalDateTime start = LocalDateTime.parse(startDate.getValue() + "T" + startTime.getText());
+            LocalDateTime end = LocalDateTime.parse(startDate.getValue() + "T" + endTime.getText());
+            // Lo stato è sempre CONFIRMED
+            return new BookingData(1, selectedStudio.getId(), start, end, "CONFIRMED");
+        }
+        return null;
+    });
+
+    return dialog.showAndWait().orElse(null);
+}
 
     private static class BookingData {
         long userId, studioId; LocalDateTime start, end; String status;
@@ -204,7 +222,7 @@ public class AdminController {
 
     // ------------------- ATTREZZATURA -------------------
     private void loadEquipment() {
-        List<Equipment> list = adminDAO.getAllEquipment();
+        List<Equipment> list = equipmentDAO.getAllEquipment();
         equipmentObservableList.setAll(list);
         equipmentListView.setItems(equipmentObservableList);
 
@@ -252,8 +270,8 @@ public class AdminController {
 
         EquipmentData data = dialog.showAndWait().orElse(null);
         if (data!=null && !data.studioIds.isEmpty()) {
-            long eqId = adminDAO.addEquipment(data.name, data.description);
-            adminDAO.assignEquipmentToStudios(eqId, data.studioIds);
+            long eqId = equipmentDAO.addEquipment(data.name, data.description);
+            equipmentDAO.assignEquipmentToStudios(eqId, data.studioIds);
             loadEquipment();
         }
     }
@@ -261,7 +279,7 @@ public class AdminController {
     @FXML private void toggleEquipment() {
         Equipment selected = equipmentListView.getSelectionModel().getSelectedItem();
         if (selected==null) { showAlert(Alert.AlertType.WARNING,"Seleziona un equip."); return; }
-        boolean updated = adminDAO.toggleEquipment(selected.getId());
+        boolean updated = equipmentDAO.toggleEquipment(selected.getId());
         showAlert(updated ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
                 updated ? "Aggiornato!" : "Errore");
         loadEquipment();
@@ -270,7 +288,7 @@ public class AdminController {
     @FXML private void deleteEquipment() {
         Equipment selected = equipmentListView.getSelectionModel().getSelectedItem();
         if (selected==null) { showAlert(Alert.AlertType.WARNING,"Seleziona un equip."); return; }
-        boolean deleted = adminDAO.deleteEquipment(selected.getId());
+        boolean deleted = equipmentDAO.deleteEquipment(selected.getId());
         showAlert(deleted ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
                 deleted ? "Rimosso!" : "Errore");
         loadEquipment();
@@ -283,18 +301,28 @@ public class AdminController {
 
     // ------------------- CREAZIONE ADMIN -------------------
     @FXML private void createAdmin() {
-        String name=adminNameField.getText().trim();
-        String email=adminEmailField.getText().trim();
-        String password=adminPasswordField.getText().trim();
-        if (name.isEmpty()||email.isEmpty()||password.isEmpty()){showAlert(Alert.AlertType.WARNING,"Compila tutti i campi."); return;}
-        String hashed=BCrypt.hashpw(password,BCrypt.gensalt());
-        boolean success=adminDAO.createAdmin(name,email,hashed);
-        showAlert(success?Alert.AlertType.INFORMATION:Alert.AlertType.ERROR,
-                  success?"Admin creato!":"Errore nella creazione.");
+        String name = adminNameField.getText().trim();
+        String email = adminEmailField.getText().trim();
+        String password = adminPasswordField.getText().trim();
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Compila tutti i campi.");
+            return;
+        }
+
+        String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
+        long id = 0L;
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+
+        Utente nuovoAdmin = new Utente(id, name, email, hashed, now, true);
+        boolean success = userDAO.register(nuovoAdmin);
+
+        showAlert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
+                  success ? "Admin creato!" : "Errore nella creazione.");
     }
 
     // ------------------- ALERT -------------------
-    private void showAlert(Alert.AlertType type, String message){
-        Alert alert = new Alert(type,message); alert.showAndWait();
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type, message);
+        alert.showAndWait();
     }
 }

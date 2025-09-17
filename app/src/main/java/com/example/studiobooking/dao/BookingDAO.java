@@ -1,57 +1,73 @@
 package com.example.studiobooking.dao;
 
-import com.example.studiobooking.model.Booking;
-import com.example.studiobooking.model.Equipment;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.studiobooking.model.Booking;
+import com.example.studiobooking.model.Equipment;
+
 public class BookingDAO {
 
-    // Controlla se lo studio è disponibile in un intervallo
-    public boolean isAvailable(long studioId, LocalDateTime start, LocalDateTime end) {
-        String sql = """
-            SELECT COUNT(*) AS count
-            FROM bookings
-            WHERE studio_id = ? 
-              AND status = 'CONFIRMED'
-              AND ((start_time < ? AND end_time > ?) 
-                   OR (start_time < ? AND end_time > ?) 
-                   OR (start_time >= ? AND end_time <= ?))
-        """;
+    // Controlla se ci sono conflitti di prenotazione
+    public boolean hasConflict(long studioId, LocalDateTime start, LocalDateTime end, Long excludeBookingId) {
+        String sql = "SELECT COUNT(*) FROM bookings WHERE studio_id = ? " +
+                "AND ((start_time < ? AND end_time > ?) OR " +
+                "(start_time < ? AND end_time > ?) OR " +
+                "(start_time >= ? AND end_time <= ?))";
+
+        if (excludeBookingId != null) {
+            sql += " AND id <> ?";
+        }
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, studioId);
             stmt.setTimestamp(2, Timestamp.valueOf(end));
-            stmt.setTimestamp(3, Timestamp.valueOf(end));
-            stmt.setTimestamp(4, Timestamp.valueOf(start));
+            stmt.setTimestamp(3, Timestamp.valueOf(start));
+            stmt.setTimestamp(4, Timestamp.valueOf(end));
             stmt.setTimestamp(5, Timestamp.valueOf(start));
             stmt.setTimestamp(6, Timestamp.valueOf(start));
             stmt.setTimestamp(7, Timestamp.valueOf(end));
 
+            if (excludeBookingId != null) {
+                stmt.setLong(8, excludeBookingId);
+            }
+
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getInt("count") == 0;
+                return rs.getInt(1) > 0;
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        return false;
+        return true;
     }
 
-    // Recupera le prenotazioni di un utente
+    // Alias: restituisce true se NON ci sono conflitti
+    public boolean isAvailable(long studioId, LocalDateTime start, LocalDateTime end) {
+        return !hasConflict(studioId, start, end, null);
+    }
+
+    // Recupera prenotazioni di un utente
     public List<Booking> getBookingsByUser(long userId) {
         List<Booking> bookings = new ArrayList<>();
-        String sql = "SELECT b.id, b.user_id, u.name AS user_name, b.studio_id, " +
-                     "b.start_time, b.end_time, b.status " +
-                     "FROM bookings b JOIN users u ON b.user_id = u.id " +
-                     "WHERE b.user_id = ? ORDER BY b.start_time DESC";
+        String sql = """
+            SELECT b.id, b.user_id, u.name AS user_name, b.studio_id,
+                   b.start_time, b.end_time, b.status
+            FROM bookings b
+            JOIN users u ON b.user_id = u.id
+            WHERE b.user_id = ?
+            ORDER BY b.start_time DESC
+        """;
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -60,34 +76,64 @@ public class BookingDAO {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                Booking b = new Booking(
-                    rs.getLong("id"),
-                    rs.getLong("user_id"),
-                    rs.getString("user_name"),
-                    rs.getLong("studio_id"),
-                    rs.getTimestamp("start_time").toLocalDateTime(),
-                    rs.getTimestamp("end_time").toLocalDateTime(),
-                    rs.getString("status")
-                );
-                bookings.add(b);
+                bookings.add(new Booking(
+                        rs.getLong("id"),
+                        rs.getLong("user_id"),
+                        rs.getString("user_name"),
+                        rs.getLong("studio_id"),
+                        rs.getTimestamp("start_time").toLocalDateTime(),
+                        rs.getTimestamp("end_time").toLocalDateTime(),
+                        rs.getString("status")
+                ));
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return bookings;
     }
 
-    // Crea una prenotazione e associa l'equipment selezionato
+    // Recupera tutte le prenotazioni
+    public List<Booking> getAllBookings() {
+        List<Booking> bookings = new ArrayList<>();
+        String sql = """
+            SELECT b.id, b.user_id, u.name AS user_name, b.studio_id,
+                   b.start_time, b.end_time, b.status
+            FROM bookings b
+            JOIN users u ON b.user_id = u.id
+            ORDER BY b.start_time DESC
+        """;
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                bookings.add(new Booking(
+                        rs.getLong("id"),
+                        rs.getLong("user_id"),
+                        rs.getString("user_name"),
+                        rs.getLong("studio_id"),
+                        rs.getTimestamp("start_time").toLocalDateTime(),
+                        rs.getTimestamp("end_time").toLocalDateTime(),
+                        rs.getString("status")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return bookings;
+    }
+
+    // Crea una prenotazione
     public boolean createBooking(long userId, long studioId, LocalDateTime start, LocalDateTime end, List<Equipment> equipmentList) {
+        if (hasConflict(studioId, start, end, null)) return false;
+
         String insertBooking = "INSERT INTO bookings (user_id, studio_id, start_time, end_time, status) VALUES (?, ?, ?, ?, 'CONFIRMED')";
         String insertEquipment = "INSERT INTO booking_equipment (booking_id, equipment_id) VALUES (?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection()) {
             conn.setAutoCommit(false);
 
-            // Inserimento prenotazione
             long bookingId;
             try (PreparedStatement stmt = conn.prepareStatement(insertBooking, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setLong(1, userId);
@@ -105,7 +151,6 @@ public class BookingDAO {
                 }
             }
 
-            // Inserimento attrezzature
             try (PreparedStatement stmt = conn.prepareStatement(insertEquipment)) {
                 for (Equipment e : equipmentList) {
                     stmt.setLong(1, bookingId);
@@ -124,18 +169,49 @@ public class BookingDAO {
         }
     }
 
-    // Cancella una prenotazione se mancano almeno 24 ore all'inizio
+    // Aggiorna prenotazione
+    public boolean updateBooking(long bookingId, long studioId, LocalDateTime start, LocalDateTime end, String status) {
+        if (hasConflict(studioId, start, end, bookingId)) return false;
+
+        String sql = "UPDATE bookings SET studio_id = ?, start_time = ?, end_time = ?, status = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, studioId);
+            stmt.setTimestamp(2, Timestamp.valueOf(start));
+            stmt.setTimestamp(3, Timestamp.valueOf(end));
+            stmt.setString(4, status);
+            stmt.setLong(5, bookingId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Cancella una prenotazione se mancano almeno 24 ore
     public boolean cancelBooking(long bookingId) {
         String sql = "UPDATE bookings SET status = 'CANCELLED' " +
                      "WHERE id = ? AND start_time > NOW() + INTERVAL 24 HOUR AND status = 'CONFIRMED'";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setLong(1, bookingId);
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
+    // Eliminazione definitiva prenotazione (solo admin)
+    public boolean deleteBooking(long bookingId) {
+        String sql = "DELETE FROM bookings WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, bookingId);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
