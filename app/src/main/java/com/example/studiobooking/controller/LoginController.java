@@ -18,15 +18,10 @@ public class LoginController {
     @FXML private PasswordField passwordField;
     @FXML private Button loginButton, registerButton;
 
-    private UserDAO userDAO = new UserDAO();
-
-    // Campo per collegare la Home esistente
+    private final UserDAO userDAO = new UserDAO();
     private HomeController homeController;
 
-    // Metodo pubblico per impostare la HomeController
-    public void setHomeController(HomeController homeController) {
-        this.homeController = homeController;
-    }
+    public void setHomeController(HomeController homeController) { this.homeController = homeController; }
 
     @FXML
     public void initialize() {
@@ -39,11 +34,11 @@ public class LoginController {
         String password = passwordField.getText().trim();
 
         Utente utente = userDAO.login(email, password);
+
         if (utente != null) {
             if (utente.isAdmin()) {
                 openAdminHome(utente);
             } else {
-                // Aggiorna la Home esistente se presente
                 if (homeController != null) {
                     homeController.setUtenteLoggato(utente);
                     homeController.loadUserBookings();
@@ -51,18 +46,10 @@ public class LoginController {
                     openUserHome(utente);
                 }
             }
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Benvenuto!");
-            alert.setHeaderText(null);
-            alert.setContentText("Ciao " + utente.getName() + ", bentornato su Studio Booking!");
-            alert.showAndWait();
-
-            Stage stage = (Stage) loginButton.getScene().getWindow();
-            stage.close();
+            showAlert(Alert.AlertType.INFORMATION, "Benvenuto!", "Ciao " + utente.getName() + ", bentornato su Studio Booking!");
+            closeWindow();
         } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Email o password errati!");
-            alert.showAndWait();
+            showAlert(Alert.AlertType.ERROR, "Errore", "Email o password errati!");
         }
     }
 
@@ -70,7 +57,6 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AdminView.fxml"));
             Parent root = loader.load();
-
             AdminController controller = loader.getController();
             controller.initAdmin(admin);
 
@@ -78,16 +64,13 @@ public class LoginController {
             stage.setTitle("Pannello Admin");
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void openUserHome(Utente user) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/HomeView.fxml"));
             Parent root = loader.load();
-
             HomeController controller = loader.getController();
             controller.setUtenteLoggato(user);
             controller.loadUserBookings();
@@ -96,9 +79,7 @@ public class LoginController {
             stage.setTitle("Home Utente");
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void openRegister() {
@@ -108,8 +89,19 @@ public class LoginController {
             stage.setScene(new Scene(loader.load(), 400, 300));
             stage.setTitle("Registrazione");
             stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        } catch (Exception ex) { ex.printStackTrace(); }
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String msg) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
+
+    private void closeWindow() {
+        Stage stage = (Stage) loginButton.getScene().getWindow();
+        stage.close();
     }
 }

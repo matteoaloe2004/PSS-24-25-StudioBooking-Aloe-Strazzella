@@ -10,34 +10,25 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.stage.Stage;
 
 import java.util.List;
 
 public class StudiosController {
 
-    @FXML
-    private ListView<Studio> studiosListView;
+    @FXML private ListView<Studio> studiosListView;
+    @FXML private Button bookButton;
+    @FXML private Label welcomeLabel;
 
-    @FXML
-    private Button bookButton;
-
-    @FXML
-    private Label welcomeLabel;
-
-    private StudioDAO studioDAO = new StudioDAO();
-    private ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
-
+    private final StudioDAO studioDAO = new StudioDAO();
+    private final ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
     private Utente utenteLoggato;
 
     @FXML
     public void initialize() {
         loadStudios();
-
         bookButton.setOnAction(e -> bookSelectedStudio());
     }
 
-    // Metodo per impostare l'utente loggato
     public void setUtenteLoggato(Utente utente) {
         this.utenteLoggato = utente;
         if (welcomeLabel != null && utente != null) {
@@ -45,14 +36,12 @@ public class StudiosController {
         }
     }
 
-    // Carica gli studi attivi dal database
     private void loadStudios() {
         List<Studio> studios = studioDAO.getActiveStudios();
         studioObservableList.setAll(studios);
         studiosListView.setItems(studioObservableList);
     }
 
-    // Gestione bottone prenota studio
     private void bookSelectedStudio() {
         Studio selected = studiosListView.getSelectionModel().getSelectedItem();
         if (selected == null) {
@@ -67,11 +56,8 @@ public class StudiosController {
             return;
         }
 
-        // Per ora mostra solo un alert di conferma
         Alert alert = new Alert(Alert.AlertType.INFORMATION,
                 "Prenotazione per: " + selected.getName() + "\nUtente: " + utenteLoggato.getName());
         alert.showAndWait();
-
-        // TODO: Aprire finestra per selezionare data/ora e attrezzatura
     }
 }

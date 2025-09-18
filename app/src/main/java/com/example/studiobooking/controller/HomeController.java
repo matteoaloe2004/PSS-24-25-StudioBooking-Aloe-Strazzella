@@ -1,8 +1,10 @@
 package com.example.studiobooking.controller;
 
 import com.example.studiobooking.dao.BookingDAO;
+import com.example.studiobooking.dao.LoyaltyCardDAO;
 import com.example.studiobooking.dao.StudioDAO;
 import com.example.studiobooking.model.Booking;
+import com.example.studiobooking.model.LoyaltyCard;
 import com.example.studiobooking.model.Studio;
 import com.example.studiobooking.model.Utente;
 import javafx.collections.FXCollections;
@@ -14,8 +16,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.util.List;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class HomeController {
 
@@ -23,25 +25,26 @@ public class HomeController {
     @FXML private Button loginButton, registerButton, bookButton, logoutButton, cancelBookingButton;
     @FXML private ListView<Studio> studiosListView;
     @FXML private ListView<Booking> userBookingsListView;
-
-    // Nodo root della loyalty card inclusa
     @FXML private VBox loyaltyCardInclude;
 
-    // Controller reale della loyalty card
     private LoyaltyCardController loyaltyCardController;
+    private final StudioDAO studioDAO = new StudioDAO();
+    private final BookingDAO bookingDAO = new BookingDAO();
+    private final LoyaltyCardDAO loyaltyCardDAO = new LoyaltyCardDAO();
 
-    private StudioDAO studioDAO = new StudioDAO();
-    private BookingDAO bookingDAO = new BookingDAO();
-
-    private ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
-    private ObservableList<Booking> userBookingsObservableList = FXCollections.observableArrayList();
-
+    private final ObservableList<Studio> studioObservableList = FXCollections.observableArrayList();
+    private final ObservableList<Booking> userBookingsObservableList = FXCollections.observableArrayList();
     private Utente utenteLoggato;
 
     @FXML
     public void initialize() {
         loadStudios();
+        setupButtons();
+        setupListViews();
+        loadLoyaltyCardComponent();
+    }
 
+    private void setupButtons() {
         loginButton.setOnAction(e -> openLogin());
         registerButton.setOnAction(e -> openRegister());
         bookButton.setOnAction(e -> openBooking());
@@ -50,42 +53,25 @@ public class HomeController {
 
         logoutButton.setVisible(false);
         cancelBookingButton.setDisable(true);
+    }
 
+    private void setupListViews() {
         studiosListView.setItems(studioObservableList);
-        studiosListView.setCellFactory(list -> new ListCell<>() {
-            @Override
-            protected void updateItem(Studio studio, boolean empty) {
-                super.updateItem(studio, empty);
-                if (empty || studio == null) setText(null);
-                else setText(studio.getName() + "\n" + studio.getDescription());
-            }
-        });
-
         userBookingsListView.setItems(userBookingsObservableList);
-        userBookingsListView.setCellFactory(list -> new ListCell<>() {
-            @Override
-            protected void updateItem(Booking booking, boolean empty) {
-                super.updateItem(booking, empty);
-                if (empty || booking == null) setText(null);
-                else setText("Studio ID: " + booking.getStudioId() +
-                        "\nData: " + booking.getStartTime().toLocalDate() +
-                        "\nFascia: " + booking.getStartTime().toLocalTime() + " - " + booking.getEndTime().toLocalTime() +
-                        "\nStato: " + booking.getStatus());
-            }
-        });
 
-        userBookingsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
-            cancelBookingButton.setDisable(newSel == null || !canCancel(newSel));
-        });
+        userBookingsListView.getSelectionModel().selectedItemProperty().addListener(
+            (obs, oldSel, newSel) -> cancelBookingButton.setDisable(newSel == null || !canCancel(newSel))
+        );
+    }
 
-        // Carica il controller della loyalty card dal nodo incluso
+    private void loadLoyaltyCardComponent() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LoyaltyCardView.fxml"));
-            loader.setRoot(loyaltyCardInclude);
-            loader.setControllerFactory(param -> new LoyaltyCardController());
-            loader.load();
+            Parent root = loader.load();
+            loyaltyCardInclude.getChildren().add(root);
             loyaltyCardController = loader.getController();
         } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Errore nel caricamento della scheda fedeltà.");
             e.printStackTrace();
         }
     }
@@ -97,10 +83,32 @@ public class HomeController {
             loginButton.setVisible(false);
             registerButton.setVisible(false);
             logoutButton.setVisible(true);
+
             loadUserBookings();
-            if (loyaltyCardController != null) {
-                loyaltyCardController.setUtente(utente);
-            }
+            initOrLoadLoyaltyCard();
+        } else {
+            welcomeLabel.setText("Benvenuto su Studio Booking!");
+            loginButton.setVisible(true);
+            registerButton.setVisible(true);
+            logoutButton.setVisible(false);
+            userBookingsObservableList.clear();
+            if (loyaltyCardController != null) loyaltyCardController.setUtente(null);
+        }
+    }
+
+    private void initOrLoadLoyaltyCard() {
+        if (utenteLoggato == null) return;
+
+        LoyaltyCard card = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
+        if (card == null) {
+            loyaltyCardDAO.createLoyaltyCard(utenteLoggato.getId());
+            card = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
+        }
+        utenteLoggato.setLoyaltyCard(card);
+
+        if (loyaltyCardController != null) {
+            loyaltyCardController.setUtente(utenteLoggato);
+            loyaltyCardController.updateLoyaltyInfo();
         }
     }
 
@@ -108,13 +116,15 @@ public class HomeController {
         if (utenteLoggato == null) return;
         List<Booking> bookings = bookingDAO.getBookingsByUser(utenteLoggato.getId());
         userBookingsObservableList.setAll(bookings);
-        Booking selected = userBookingsListView.getSelectionModel().getSelectedItem();
-        cancelBookingButton.setDisable(selected == null || !canCancel(selected));
+
+        if (loyaltyCardController != null && utenteLoggato.getLoyaltyCard() != null) {
+            loyaltyCardController.updateLoyaltyInfo();
+        }
     }
 
     private boolean canCancel(Booking booking) {
-        LocalDateTime now = LocalDateTime.now();
-        return booking.getStartTime().isAfter(now.plusHours(24)) && !"CANCELLED".equalsIgnoreCase(booking.getStatus());
+        return booking.getStartTime().isAfter(LocalDateTime.now().plusHours(24)) &&
+               !"CANCELLED".equalsIgnoreCase(booking.getStatus());
     }
 
     private void cancelSelectedBooking() {
@@ -123,28 +133,21 @@ public class HomeController {
             showAlert(Alert.AlertType.WARNING, "Seleziona una prenotazione da annullare.");
             return;
         }
-        boolean success = bookingDAO.cancelBooking(selectedBooking.getId());
-        if (success) {
+
+        if (bookingDAO.cancelBooking(selectedBooking.getId())) {
             showAlert(Alert.AlertType.INFORMATION, "Prenotazione annullata con successo.");
-            userBookingsObservableList.remove(selectedBooking);
+            loadUserBookings();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Non puoi annullare questa prenotazione (minimo 24h prima).");
+            showAlert(Alert.AlertType.ERROR, "Non puoi annullare questa prenotazione (deve essere almeno 24 ore prima).");
         }
     }
 
     private void logout() {
-        utenteLoggato = null;
-        welcomeLabel.setText("Benvenuto su Studio Booking!");
-        loginButton.setVisible(true);
-        registerButton.setVisible(true);
-        logoutButton.setVisible(false);
-        userBookingsObservableList.clear();
-        if (loyaltyCardController != null) loyaltyCardController.setUtente(null);
+        setUtenteLoggato(null);
     }
 
     private void loadStudios() {
-        List<Studio> studios = studioDAO.getActiveStudios();
-        studioObservableList.setAll(studios);
+        studioObservableList.setAll(studioDAO.getActiveStudios());
     }
 
     private void openLogin() {
@@ -158,7 +161,10 @@ public class HomeController {
             stage.setScene(new javafx.scene.Scene(root));
             stage.setTitle("Login");
             stage.show();
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ex) {
+            showAlert(Alert.AlertType.ERROR, "Errore nell'apertura della finestra di login.");
+            ex.printStackTrace();
+        }
     }
 
     private void openRegister() {
@@ -168,19 +174,23 @@ public class HomeController {
             stage.setScene(new javafx.scene.Scene(loader.load(), 400, 300));
             stage.setTitle("Registrazione");
             stage.show();
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ex) {
+            showAlert(Alert.AlertType.ERROR, "Errore nell'apertura della finestra di registrazione.");
+            ex.printStackTrace();
+        }
     }
 
     private void openBooking() {
         Studio selected = studiosListView.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showAlert(Alert.AlertType.WARNING, "Seleziona uno studio prima di prenotare.");
-            return;
+        if (selected == null) { 
+            showAlert(Alert.AlertType.WARNING, "Seleziona uno studio prima di prenotare."); 
+            return; 
         }
-        if (utenteLoggato == null) {
-            showAlert(Alert.AlertType.ERROR, "Devi essere loggato per prenotare uno studio.");
-            return;
+        if (utenteLoggato == null) { 
+            showAlert(Alert.AlertType.ERROR, "Devi essere loggato per prenotare uno studio."); 
+            return; 
         }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/BookingView.fxml"));
             Parent root = loader.load();
@@ -192,7 +202,10 @@ public class HomeController {
             stage.setScene(new javafx.scene.Scene(root, 800, 600));
             stage.setTitle("Prenotazione Studio: " + selected.getName());
             stage.show();
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ex) {
+            showAlert(Alert.AlertType.ERROR, "Errore nell'apertura della finestra di prenotazione.");
+            ex.printStackTrace();
+        }
     }
 
     private void showAlert(Alert.AlertType type, String message) {
@@ -200,10 +213,9 @@ public class HomeController {
         alert.showAndWait();
     }
 
-    // Metodo pubblico per aggiungere una prenotazione alla loyalty card
-    public void addLoyaltyBooking() {
-        if (loyaltyCardController != null) {
-            loyaltyCardController.addBooking();
+    public void loadLoyaltyCard() {
+        if (loyaltyCardController != null && utenteLoggato != null) {
+            loyaltyCardController.updateLoyaltyInfo();
         }
     }
 }

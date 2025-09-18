@@ -7,19 +7,27 @@
             fx:controller="com.example.studiobooking.controller.HomeController"
             prefWidth="900" prefHeight="700">
 
-    <!-- Top: Benvenuto e pulsanti Login/Register/Logout -->
+    <!-- Top: Benvenuto e pulsanti Login/Register/Logout + Loyalty Card -->
     <top>
         <VBox spacing="10" alignment="CENTER" style="-fx-padding: 20; -fx-background-color: #2c3e50;">
-            <Label fx:id="welcomeLabel" text="Benvenuto su Studio Booking!" style="-fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold;" />
+            <!-- Benvenuto e pulsanti -->
             <HBox spacing="15" alignment="CENTER">
-                <Button fx:id="loginButton" text="Login" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20;"/>
-                <Button fx:id="registerButton" text="Registrati" style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20;"/>
-                <Button fx:id="logoutButton" text="Logout" style="-fx-background-color: #e74c3c; -fx-text-fill: white;" visible="false"/>
+                <Label fx:id="welcomeLabel" text="Benvenuto su Studio Booking!" 
+                       style="-fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold;" />
+                <Button fx:id="loginButton" text="Login" 
+                        style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20;"/>
+                <Button fx:id="registerButton" text="Registrati" 
+                        style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20;"/>
+                <Button fx:id="logoutButton" text="Logout" 
+                        style="-fx-background-color: #e74c3c; -fx-text-fill: white;" visible="false"/>
             </HBox>
+
+            <!-- Loyalty Card Include -->
+            <VBox fx:id="loyaltyCardInclude" spacing="5" alignment="CENTER"/>
         </VBox>
     </top>
 
-    <!-- Center: Lista studi, lista prenotazioni e loyalty card -->
+    <!-- Center: Liste studi e prenotazioni -->
     <center>
         <HBox spacing="20" style="-fx-padding: 20;">
             <!-- Lista studi -->
@@ -28,13 +36,10 @@
                 <ListView fx:id="studiosListView" prefWidth="400" prefHeight="500" style="-fx-background-color: white; -fx-font-size: 16px;"/>
             </VBox>
 
-            <!-- Lista prenotazioni utente + loyalty card -->
+            <!-- Lista prenotazioni utente -->
             <VBox spacing="10" HBox.hgrow="ALWAYS" style="-fx-background-color: #ecf0f1; -fx-padding: 15; -fx-border-color: #bdc3c7; -fx-border-width: 2px; -fx-border-radius: 10px;">
                 <Label text="Le Tue Prenotazioni:" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
-                <ListView fx:id="userBookingsListView" prefWidth="400" prefHeight="300" style="-fx-background-color: white; -fx-font-size: 14px;"/>
-                
-                <!-- Sezione Loyalty Card inclusa -->
-                <fx:include source="LoyaltyCardView.fxml" fx:id="loyaltyCardInclude"/>
+                <ListView fx:id="userBookingsListView" prefWidth="400" prefHeight="500" style="-fx-background-color: white; -fx-font-size: 14px;"/>
             </VBox>
         </HBox>
     </center>

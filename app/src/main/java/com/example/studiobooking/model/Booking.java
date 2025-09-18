@@ -4,19 +4,32 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Booking {
-    private long id;
-    private long userId;
-    private String userName; // 🔹 nuovo campo
-    private long studioId;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private final long id;
+    private final long userId;
+    private String userName; 
+    private final long studioId;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
     private String status;
 
+    // Costruttore completo
     public Booking(long id, long userId, String userName, long studioId,
                    LocalDateTime startTime, LocalDateTime endTime, String status) {
         this.id = id;
         this.userId = userId;
         this.userName = userName;
+        this.studioId = studioId;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.status = status;
+    }
+
+    // Costruttore DAO-friendly (senza userName)
+    public Booking(long id, long userId, long studioId,
+                   LocalDateTime startTime, LocalDateTime endTime, String status) {
+        this.id = id;
+        this.userId = userId;
+        this.userName = ""; // default vuoto
         this.studioId = studioId;
         this.startTime = startTime;
         this.endTime = endTime;

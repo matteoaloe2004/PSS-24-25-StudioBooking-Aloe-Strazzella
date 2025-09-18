@@ -1,10 +1,11 @@
 package com.example.studiobooking.controller;
 
-import com.example.studiobooking.dao.EquipmentDAO;
 import com.example.studiobooking.dao.BookingDAO;
-import com.example.studiobooking.model.Utente;
-import com.example.studiobooking.model.Studio;
+import com.example.studiobooking.dao.EquipmentDAO;
+import com.example.studiobooking.dao.LoyaltyCardDAO;
 import com.example.studiobooking.model.Equipment;
+import com.example.studiobooking.model.Studio;
+import com.example.studiobooking.model.Utente;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -29,43 +30,40 @@ public class BookingController {
     private Studio studioSelezionato;
     private HomeController homeController;
 
-    private EquipmentDAO equipmentDAO = new EquipmentDAO();
-    private BookingDAO bookingDAO = new BookingDAO();
-
-    private ObservableList<Equipment> equipmentObservableList = FXCollections.observableArrayList();
+    private final EquipmentDAO equipmentDAO = new EquipmentDAO();
+    private final BookingDAO bookingDAO = new BookingDAO();
+    private final LoyaltyCardDAO loyaltyCardDAO = new LoyaltyCardDAO();
+    private final ObservableList<Equipment> equipmentObservableList = FXCollections.observableArrayList();
 
     public void initBooking(Utente utente, Studio studio) {
         this.utenteLoggato = utente;
         this.studioSelezionato = studio;
+        if (studioLabel != null && studio != null) studioLabel.setText("Prenotazione: " + studio.getName());
 
-        studioLabel.setText("Prenotazione: " + studio.getName());
+        if (datePicker != null) {
+            datePicker.setDayCellFactory(picker -> new DateCell() {
+                @Override
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    LocalDate now = LocalDate.now();
+                    setDisable(empty || date.isBefore(now) || date.isAfter(now.plusMonths(1)));
+                }
+            });
+            datePicker.setValue(LocalDate.now());
+        }
 
-        datePicker.setDayCellFactory(picker -> new DateCell() {
-            @Override
-            public void updateItem(LocalDate date, boolean empty) {
-                super.updateItem(date, empty);
-                LocalDate now = LocalDate.now();
-                setDisable(empty || date.isBefore(now) || date.isAfter(now.plusMonths(1)));
-            }
-        });
-        datePicker.setValue(LocalDate.now());
-
-        timeSlotComboBox.getItems().addAll(
-                "09:00 - 11:00",
-                "11:00 - 13:00",
-                "14:00 - 16:00",
-                "16:00 - 18:00"
-        );
-        timeSlotComboBox.getSelectionModel().selectFirst();
+        if (timeSlotComboBox != null) {
+            timeSlotComboBox.getItems().addAll("09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00");
+            timeSlotComboBox.getSelectionModel().selectFirst();
+        }
 
         loadEquipment();
     }
 
-    public void setHomeController(HomeController homeController) {
-        this.homeController = homeController;
-    }
+    public void setHomeController(HomeController homeController) { this.homeController = homeController; }
 
     private void loadEquipment() {
+        if (studioSelezionato == null) return;
         List<Equipment> equipmentList = equipmentDAO.getEquipmentByStudio(studioSelezionato.getId());
         equipmentObservableList.setAll(equipmentList);
         equipmentListView.setItems(equipmentObservableList);
@@ -75,7 +73,7 @@ public class BookingController {
             @Override
             protected void updateItem(Equipment item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.getName());
+                setText((empty || item == null) ? null : item.getName());
             }
         });
     }
@@ -92,26 +90,19 @@ public class BookingController {
     }
 
     private void confirmBooking() {
-        LocalDate date = datePicker.getValue();
-        String timeSlot = timeSlotComboBox.getSelectionModel().getSelectedItem();
-        List<Equipment> selectedEquipment = equipmentListView.getSelectionModel().getSelectedItems();
-
-        if (date == null || timeSlot == null) {
+        if (datePicker.getValue() == null || timeSlotComboBox.getSelectionModel().getSelectedItem() == null) {
             showAlert(Alert.AlertType.WARNING, "Seleziona giorno e fascia oraria.");
             return;
         }
-
-        if (selectedEquipment.isEmpty()) {
+        if (equipmentListView.getSelectionModel().getSelectedItems().isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Seleziona almeno un pezzo di attrezzatura.");
             return;
         }
 
-        String[] times = timeSlot.split(" - ");
-        LocalTime startTime = LocalTime.parse(times[0]);
-        LocalTime endTime = LocalTime.parse(times[1]);
-
-        LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
-        LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
+        LocalDate date = datePicker.getValue();
+        String[] times = timeSlotComboBox.getSelectionModel().getSelectedItem().split(" - ");
+        LocalDateTime startDateTime = LocalDateTime.of(date, LocalTime.parse(times[0]));
+        LocalDateTime endDateTime = LocalDateTime.of(date, LocalTime.parse(times[1]));
 
         if (!bookingDAO.isAvailable(studioSelezionato.getId(), startDateTime, endDateTime)) {
             showAlert(Alert.AlertType.ERROR, "Lo studio non è disponibile in questa fascia oraria.");
@@ -123,17 +114,19 @@ public class BookingController {
                 studioSelezionato.getId(),
                 startDateTime,
                 endDateTime,
-                selectedEquipment
+                equipmentListView.getSelectionModel().getSelectedItems()
         );
 
         if (success) {
-            showAlert(Alert.AlertType.INFORMATION, "Prenotazione confermata per " +
-                    studioSelezionato.getName() + " il " + date + " " + timeSlot);
+            showAlert(Alert.AlertType.INFORMATION,
+                    "Prenotazione confermata per " + studioSelezionato.getName() + " il " + date + " " + timeSlotComboBox.getSelectionModel().getSelectedItem());
 
-            // Aggiorna la loyalty card con 1 prenotazione
+            loyaltyCardDAO.refreshLoyaltyCard(utenteLoggato.getId());
+            utenteLoggato.setLoyaltyCard(loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId()));
+
             if (homeController != null) {
-                homeController.addLoyaltyBooking();
                 homeController.loadUserBookings();
+                homeController.loadLoyaltyCard();
             }
 
             goBackToHome();

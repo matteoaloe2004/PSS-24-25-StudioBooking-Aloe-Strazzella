@@ -1,7 +1,7 @@
 package com.example.studiobooking.controller;
 
-import com.example.studiobooking.model.Utente;
 import com.example.studiobooking.model.LoyaltyCard;
+import com.example.studiobooking.model.Utente;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
@@ -25,14 +25,6 @@ public class LoyaltyCardController {
         } else {
             loyaltyBookingsLabel.setText("Prenotazioni totali: 0");
             loyaltyDiscountLabel.setText("Sconto: 0%");
-        }
-    }
-
-    // Aggiunge una prenotazione alla card
-    public void addBooking() {
-        if (utente != null && utente.getLoyaltyCard() != null) {
-            utente.getLoyaltyCard().addBooking();
-            updateLoyaltyInfo();
         }
     }
 }
