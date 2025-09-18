@@ -17,7 +17,7 @@ public class LoginController {
 
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
-    @FXML private Button loginButton, registerButton;
+    @FXML private Button loginButton;
 
     private final UserDAO userDAO = new UserDAO();
 
@@ -32,7 +32,6 @@ public class LoginController {
     @FXML
     public void initialize() {
         loginButton.setOnAction(e -> login());
-        registerButton.setOnAction(e -> openRegister());
     }
 
     private void login() {
@@ -102,15 +101,5 @@ public class LoginController {
         }
     }
 
-    private void openRegister() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RegisterView.fxml"));
-            Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load(), 400, 300));
-            stage.setTitle("Registrazione");
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
+    
 }

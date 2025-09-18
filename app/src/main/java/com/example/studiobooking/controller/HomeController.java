@@ -106,24 +106,17 @@ public class HomeController {
     }
 
     public void loadLoyaltyCard() {
-        if (utenteLoggato == null) return;
+    if (utenteLoggato == null) return;
 
-        // Recupera loyalty card; se non esiste la crea
-        loyaltyCard = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
-        if (loyaltyCard == null) {
-            loyaltyCardDAO.createLoyaltyCard(utenteLoggato.getId());
-            loyaltyCard = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
-        }
+    // Aggiorna sempre la loyalty card basandosi SOLO sulle prenotazioni effettive (non CANCELLED)
+    loyaltyCardDAO.refreshLoyaltyCard(utenteLoggato.getId());
+    loyaltyCard = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
 
-        if (loyaltyCard != null) {
-            // Aggiorna in tempo reale
-            int totalBookings = bookingDAO.getBookingsByUser(utenteLoggato.getId()).size();
-            loyaltyCardDAO.updateDiscountLevel(utenteLoggato.getId(), totalBookings);
-
-            totalBookingsLabel.setText("Prenotazioni totali: " + totalBookings);
-            discountLabel.setText("Sconto attuale: " + Math.min((totalBookings / 3) * 5, 30) + "%");
-        }
+    if (loyaltyCard != null) {
+        totalBookingsLabel.setText("Prenotazioni totali: " + loyaltyCard.getTotalBooking());
+        discountLabel.setText("Sconto attuale: " + loyaltyCard.getDiscountLevel() + "%");
     }
+}
 
     private void refreshLoyaltyCard() {
     if (utenteLoggato == null) return;

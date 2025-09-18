@@ -27,6 +27,7 @@ import javafx.stage.Stage;
 
 public class BookingController {
 
+    @FXML private Label studioDescriptionLabel;
     @FXML private Label studioLabel;
     @FXML private DatePicker datePicker;
     @FXML private ComboBox<String> timeSlotComboBox;
@@ -48,6 +49,7 @@ public class BookingController {
         this.studioSelezionato = studio;
 
         studioLabel.setText("Prenotazione: " + studio.getName());
+        studioDescriptionLabel.setText(studio.getDescription());
 
         datePicker.setDayCellFactory(picker -> new DateCell() {
             @Override
