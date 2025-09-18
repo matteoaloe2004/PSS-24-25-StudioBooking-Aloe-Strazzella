@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.example.studiobooking.dao.BookingDAO;
 import com.example.studiobooking.dao.EquipmentDAO;
+import com.example.studiobooking.model.Booking;
 import com.example.studiobooking.model.Equipment;
 import com.example.studiobooking.model.Studio;
 import com.example.studiobooking.model.Utente;
@@ -23,6 +24,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.Tooltip;
 import javafx.stage.Stage;
 
 public class BookingController {
@@ -51,16 +53,32 @@ public class BookingController {
         studioLabel.setText("Prenotazione: " + studio.getName());
         studioDescriptionLabel.setText(studio.getDescription());
 
+        // Carica prenotazioni esistenti dello studio
+        List<Booking> existingBookings = bookingDAO.getBookingsByStudio(studio.getId());
+
+        // DatePicker con giorni occupati disabilitati e evidenziati
         datePicker.setDayCellFactory(picker -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
                 LocalDate now = LocalDate.now();
+
                 setDisable(empty || date.isBefore(now) || date.isAfter(now.plusMonths(1)));
+
+                boolean hasBooking = existingBookings.stream()
+                        .anyMatch(b -> b.getStartTime().toLocalDate().equals(date));
+                if (hasBooking) {
+                    setStyle("-fx-background-color: #ffcccc;"); // rosso chiaro
+                    setTooltip(new Tooltip("Giorno già occupato"));
+                }
             }
         });
         datePicker.setValue(LocalDate.now());
 
+        // Aggiorna fasce orarie quando cambia la data
+        datePicker.valueProperty().addListener((obs, oldDate, newDate) -> updateTimeSlots(existingBookings, newDate));
+
+        // Imposta fasce orarie possibili
         timeSlotComboBox.getItems().addAll(
                 "09:00 - 11:00",
                 "11:00 - 13:00",
@@ -77,82 +95,147 @@ public class BookingController {
     }
 
     private void loadEquipment() {
-        List<Equipment> equipmentList = equipmentDAO.getEquipmentByStudio(studioSelezionato.getId());
-        equipmentObservableList.setAll(equipmentList);
-        equipmentListView.setItems(equipmentObservableList);
-        equipmentListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    List<Equipment> equipmentList = equipmentDAO.getEquipmentByStudio(studioSelezionato.getId());
+    equipmentObservableList.setAll(equipmentList);
+    equipmentListView.setItems(equipmentObservableList);
 
-        equipmentListView.setCellFactory(lv -> new ListCell<>() {
-            @Override
-            protected void updateItem(Equipment item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.getName());
+    // IMPOSTA MODALITÀ MULTISELEZIONE
+    equipmentListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+    equipmentListView.setCellFactory(lv -> new ListCell<>() {
+        @Override
+        protected void updateItem(Equipment item, boolean empty) {
+            super.updateItem(item, empty);
+            setText(empty || item == null ? null : item.getName());
+        }
+    });
+}
+
+    private void updateTimeSlots(List<Booking> existingBookings, LocalDate date) {
+        if (date == null) return;
+
+        ObservableList<String> availableSlots = FXCollections.observableArrayList(
+                "09:00 - 11:00",
+                "11:00 - 13:00",
+                "14:00 - 16:00",
+                "16:00 - 18:00"
+        );
+
+        for (Booking b : existingBookings) {
+            if (b.getStartTime().toLocalDate().equals(date)) {
+                String slot = b.getStartTime().toLocalTime() + " - " + b.getEndTime().toLocalTime();
+                availableSlots.remove(slot);
             }
-        });
+        }
+
+        timeSlotComboBox.setItems(availableSlots);
+        if (!availableSlots.isEmpty()) {
+            timeSlotComboBox.getSelectionModel().selectFirst();
+        } else {
+            timeSlotComboBox.getSelectionModel().clearSelection();
+        }
     }
 
     public void initialize() {
-    confirmButton.setOnAction(e -> confirmBooking());
-    backButton.setOnAction(e -> goBackToHome());
-}
-
-private void goBackToHome() {
-    Stage stage = (Stage) backButton.getScene().getWindow();
-    stage.close();
-}
-
-private void confirmBooking() {
-    LocalDate date = datePicker.getValue();
-    String timeSlot = timeSlotComboBox.getSelectionModel().getSelectedItem();
-    List<Equipment> selectedEquipment = equipmentListView.getSelectionModel().getSelectedItems();
-
-    if (date == null || timeSlot == null) {
-        showAlert(Alert.AlertType.WARNING, "Seleziona giorno e fascia oraria.");
-        return;
-    }
-    if (selectedEquipment.isEmpty()) {
-        showAlert(Alert.AlertType.WARNING, "Seleziona almeno un pezzo di attrezzatura.");
-        return;
+        confirmButton.setOnAction(e -> confirmBooking());
+        backButton.setOnAction(e -> goBackToHome());
     }
 
-    String[] times = timeSlot.split(" - ");
-    LocalTime startTime = LocalTime.parse(times[0]);
-    LocalTime endTime = LocalTime.parse(times[1]);
-
-    LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
-    LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
-
-    if (!bookingDAO.isAvailable(studioSelezionato.getId(), startDateTime, endDateTime)) {
-        showAlert(Alert.AlertType.ERROR, "Lo studio non è disponibile in questa fascia oraria.");
-        return;
+    private void goBackToHome() {
+        Stage stage = (Stage) backButton.getScene().getWindow();
+        stage.close();
     }
 
-    boolean success = bookingDAO.createBooking(
-            utenteLoggato.getId(),
-            studioSelezionato.getId(),
-            startDateTime,
-            endDateTime,
-            selectedEquipment
-    );
+    private boolean checkRequiredEquipment(List<Equipment> selectedEquipment) {
+        boolean hasMicrophone = false;
+        boolean hasAudioInterface = false;
+        boolean hasMonitor = false;
 
-    if (success) {
-        showAlert(Alert.AlertType.INFORMATION, "Prenotazione confermata per " +
-                studioSelezionato.getName() + " il " + date + " " + timeSlot);
-
-        // Aggiorna la lista delle prenotazioni e la loyalty card nella Home
-        if (homeController != null) {
-            homeController.loadUserBookings();   // aggiorna la lista prenotazioni
-            homeController.loadLoyaltyCard();    // aggiorna i label loyalty
+        for (Equipment e : selectedEquipment) {
+            switch (e.getType().toLowerCase()) {
+                case "microfono":
+                    hasMicrophone = true;
+                    break;
+                case "scheda audio":
+                    hasAudioInterface = true;
+                    break;
+                case "monitor":
+                    hasMonitor = true;
+                    break;
+            }
         }
 
-        goBackToHome();
-    } else {
-        showAlert(Alert.AlertType.ERROR, "Errore durante la prenotazione.");
-    }
-}
+        if (!hasMicrophone) {
+            showAlert(Alert.AlertType.WARNING, "Devi selezionare almeno un microfono.");
+            return false;
+        }
+        if (!hasAudioInterface) {
+            showAlert(Alert.AlertType.WARNING, "Devi selezionare almeno una scheda audio.");
+            return false;
+        }
+        if (!hasMonitor) {
+            showAlert(Alert.AlertType.WARNING, "Devi selezionare almeno un monitor.");
+            return false;
+        }
 
-private void showAlert(Alert.AlertType type, String message) {
-    Alert alert = new Alert(type, message);
-    alert.showAndWait();
-}
+        return true;
+    }
+
+    private void confirmBooking() {
+        LocalDate date = datePicker.getValue();
+        String timeSlot = timeSlotComboBox.getSelectionModel().getSelectedItem();
+        List<Equipment> selectedEquipment = equipmentListView.getSelectionModel().getSelectedItems();
+
+        if (date == null || timeSlot == null) {
+            showAlert(Alert.AlertType.WARNING, "Seleziona giorno e fascia oraria.");
+            return;
+        }
+        if (selectedEquipment.isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Seleziona almeno un pezzo di attrezzatura.");
+            return;
+        }
+
+        if (!checkRequiredEquipment(selectedEquipment)) {
+            return;
+        }
+
+        String[] times = timeSlot.split(" - ");
+        LocalTime startTime = LocalTime.parse(times[0]);
+        LocalTime endTime = LocalTime.parse(times[1]);
+
+        LocalDateTime startDateTime = LocalDateTime.of(date, startTime);
+        LocalDateTime endDateTime = LocalDateTime.of(date, endTime);
+
+        if (!bookingDAO.isAvailable(studioSelezionato.getId(), startDateTime, endDateTime)) {
+            showAlert(Alert.AlertType.ERROR, "Lo studio non è disponibile in questa fascia oraria.");
+            return;
+        }
+
+        boolean success = bookingDAO.createBooking(
+                utenteLoggato.getId(),
+                studioSelezionato.getId(),
+                startDateTime,
+                endDateTime,
+                selectedEquipment
+        );
+
+        if (success) {
+            showAlert(Alert.AlertType.INFORMATION, "Prenotazione confermata per " +
+                    studioSelezionato.getName() + " il " + date + " " + timeSlot);
+
+            if (homeController != null) {
+                homeController.loadUserBookings();
+                homeController.loadLoyaltyCard();
+            }
+
+            goBackToHome();
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Errore durante la prenotazione.");
+        }
+    }
+
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type, message);
+        alert.showAndWait();
+    }
 }

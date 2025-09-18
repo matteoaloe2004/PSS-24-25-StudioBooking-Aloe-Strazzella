@@ -259,4 +259,40 @@ public class BookingDAO {
         }
         return bookings;
     }
+
+    public List<Booking> getBookingsByStudio(long studioId) {
+    List<Booking> bookings = new ArrayList<>();
+    String sql = """
+        SELECT b.id, b.user_id, u.name AS user_name, b.studio_id,
+               b.start_time, b.end_time, b.status
+        FROM bookings b
+        JOIN users u ON b.user_id = u.id
+        WHERE b.studio_id = ?
+        ORDER BY b.start_time
+    """;
+
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        stmt.setLong(1, studioId);
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next()) {
+            bookings.add(new Booking(
+                    rs.getLong("id"),
+                    rs.getLong("user_id"),
+                    rs.getString("user_name"),
+                    rs.getLong("studio_id"),
+                    rs.getTimestamp("start_time").toLocalDateTime(),
+                    rs.getTimestamp("end_time").toLocalDateTime(),
+                    rs.getString("status")
+            ));
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return bookings;
+}
+
 }

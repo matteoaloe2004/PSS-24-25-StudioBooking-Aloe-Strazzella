@@ -24,7 +24,8 @@ public class EquipmentDAO {
                         rs.getLong("id"),
                         rs.getString("name"),
                         rs.getString("description"),
-                        rs.getBoolean("is_available")
+                        rs.getBoolean("is_available"),
+                        rs.getString("type")
                 ));
             }
         } catch (SQLException e) {
@@ -48,7 +49,8 @@ public class EquipmentDAO {
                         rs.getLong("id"),
                         rs.getString("name"),
                         rs.getString("description"),
-                        rs.getBoolean("is_available")
+                        rs.getBoolean("is_available"),
+                        rs.getString("type")
                 ));
             }
         } catch (SQLException e) {
