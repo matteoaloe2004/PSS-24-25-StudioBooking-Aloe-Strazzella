@@ -164,6 +164,40 @@ public class BookingDAO {
         }
     }
 
+    public boolean isEquipmentAvailable(Equipment equipment, LocalDateTime start, LocalDateTime end) {
+    String sql = """
+        SELECT COUNT(*) 
+        FROM booking_equipment be
+        JOIN bookings b ON be.booking_id = b.id
+        WHERE be.equipment_id = ? 
+          AND b.status = 'CONFIRMED'
+          AND ((b.start_time < ? AND b.end_time > ?) OR
+               (b.start_time < ? AND b.end_time > ?) OR
+               (b.start_time >= ? AND b.end_time <= ?))
+    """;
+
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        stmt.setLong(1, equipment.getId());
+        stmt.setTimestamp(2, Timestamp.valueOf(end));
+        stmt.setTimestamp(3, Timestamp.valueOf(start));
+        stmt.setTimestamp(4, Timestamp.valueOf(end));
+        stmt.setTimestamp(5, Timestamp.valueOf(start));
+        stmt.setTimestamp(6, Timestamp.valueOf(start));
+        stmt.setTimestamp(7, Timestamp.valueOf(end));
+
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1) == 0; // true se non ci sono conflitti
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return false;
+}
+
+
     // Aggiorna prenotazione
     public boolean updateBooking(long bookingId, long studioId, LocalDateTime start,
                                  LocalDateTime end, String status) {

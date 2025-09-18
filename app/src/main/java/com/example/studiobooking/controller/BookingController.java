@@ -22,8 +22,6 @@ import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Tooltip;
 import javafx.stage.Stage;
 
@@ -33,7 +31,11 @@ public class BookingController {
     @FXML private Label studioLabel;
     @FXML private DatePicker datePicker;
     @FXML private ComboBox<String> timeSlotComboBox;
-    @FXML private ListView<Equipment> equipmentListView;
+
+    @FXML private ComboBox<Equipment> microphoneComboBox;
+    @FXML private ComboBox<Equipment> audioInterfaceComboBox;
+    @FXML private ComboBox<Equipment> monitorComboBox;
+
     @FXML private Button confirmButton;
     @FXML private Button backButton;
 
@@ -43,8 +45,6 @@ public class BookingController {
 
     private final EquipmentDAO equipmentDAO = new EquipmentDAO();
     private final BookingDAO bookingDAO = new BookingDAO();
-
-    private final ObservableList<Equipment> equipmentObservableList = FXCollections.observableArrayList();
 
     public void initBooking(Utente utente, Studio studio) {
         this.utenteLoggato = utente;
@@ -56,13 +56,12 @@ public class BookingController {
         // Carica prenotazioni esistenti dello studio
         List<Booking> existingBookings = bookingDAO.getBookingsByStudio(studio.getId());
 
-        // DatePicker con giorni occupati disabilitati e evidenziati
+        // DatePicker con giorni occupati evidenziati
         datePicker.setDayCellFactory(picker -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {
                 super.updateItem(date, empty);
                 LocalDate now = LocalDate.now();
-
                 setDisable(empty || date.isBefore(now) || date.isAfter(now.plusMonths(1)));
 
                 boolean hasBooking = existingBookings.stream()
@@ -87,29 +86,62 @@ public class BookingController {
         );
         timeSlotComboBox.getSelectionModel().selectFirst();
 
-        loadEquipment();
+        // Carica attrezzatura separata per tipo
+        loadEquipmentByType();
     }
 
-    public void setHomeController(HomeController homeController) {
-        this.homeController = homeController;
-    }
-
-    private void loadEquipment() {
+    private void loadEquipmentByType() {
+    // Recupera tutta l'attrezzatura disponibile per lo studio selezionato
     List<Equipment> equipmentList = equipmentDAO.getEquipmentByStudio(studioSelezionato.getId());
-    equipmentObservableList.setAll(equipmentList);
-    equipmentListView.setItems(equipmentObservableList);
 
-    // IMPOSTA MODALITÀ MULTISELEZIONE
-    equipmentListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    // Filtra l'attrezzatura in base al tipo corretto dal database
+    microphoneComboBox.setItems(FXCollections.observableArrayList(
+            equipmentList.stream()
+                         .filter(e -> "MIC".equals(e.getType()))
+                         .toList()
+    ));
 
-    equipmentListView.setCellFactory(lv -> new ListCell<>() {
-        @Override
-        protected void updateItem(Equipment item, boolean empty) {
-            super.updateItem(item, empty);
-            setText(empty || item == null ? null : item.getName());
-        }
-    });
+    audioInterfaceComboBox.setItems(FXCollections.observableArrayList(
+            equipmentList.stream()
+                         .filter(e -> "AUDIO".equals(e.getType()))
+                         .toList()
+    ));
+
+    monitorComboBox.setItems(FXCollections.observableArrayList(
+            equipmentList.stream()
+                         .filter(e -> "MONITOR".equals(e.getType()))
+                         .toList()
+    ));
+
+    // Imposta le celle con tooltip per la descrizione
+    microphoneComboBox.setCellFactory(lv -> createTooltipCell());
+    microphoneComboBox.setButtonCell(createTooltipCell());
+
+    audioInterfaceComboBox.setCellFactory(lv -> createTooltipCell());
+    audioInterfaceComboBox.setButtonCell(createTooltipCell());
+
+    monitorComboBox.setCellFactory(lv -> createTooltipCell());
+    monitorComboBox.setButtonCell(createTooltipCell());
 }
+
+
+    private ListCell<Equipment> createTooltipCell() {
+        return new ListCell<>() {
+            private final Tooltip tooltip = new Tooltip();
+            @Override
+            protected void updateItem(Equipment item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setTooltip(null);
+                } else {
+                    setText(item.getName());
+                    tooltip.setText(item.getDescription());
+                    setTooltip(tooltip);
+                }
+            }
+        };
+    }
 
     private void updateTimeSlots(List<Booking> existingBookings, LocalDate date) {
         if (date == null) return;
@@ -146,56 +178,15 @@ public class BookingController {
         stage.close();
     }
 
-    private boolean checkRequiredEquipment(List<Equipment> selectedEquipment) {
-        boolean hasMicrophone = false;
-        boolean hasAudioInterface = false;
-        boolean hasMonitor = false;
-
-        for (Equipment e : selectedEquipment) {
-            switch (e.getType().toLowerCase()) {
-                case "microfono":
-                    hasMicrophone = true;
-                    break;
-                case "scheda audio":
-                    hasAudioInterface = true;
-                    break;
-                case "monitor":
-                    hasMonitor = true;
-                    break;
-            }
-        }
-
-        if (!hasMicrophone) {
-            showAlert(Alert.AlertType.WARNING, "Devi selezionare almeno un microfono.");
-            return false;
-        }
-        if (!hasAudioInterface) {
-            showAlert(Alert.AlertType.WARNING, "Devi selezionare almeno una scheda audio.");
-            return false;
-        }
-        if (!hasMonitor) {
-            showAlert(Alert.AlertType.WARNING, "Devi selezionare almeno un monitor.");
-            return false;
-        }
-
-        return true;
-    }
-
     private void confirmBooking() {
         LocalDate date = datePicker.getValue();
         String timeSlot = timeSlotComboBox.getSelectionModel().getSelectedItem();
-        List<Equipment> selectedEquipment = equipmentListView.getSelectionModel().getSelectedItems();
+        Equipment selectedMicrophone = microphoneComboBox.getSelectionModel().getSelectedItem();
+        Equipment selectedAudio = audioInterfaceComboBox.getSelectionModel().getSelectedItem();
+        Equipment selectedMonitor = monitorComboBox.getSelectionModel().getSelectedItem();
 
-        if (date == null || timeSlot == null) {
-            showAlert(Alert.AlertType.WARNING, "Seleziona giorno e fascia oraria.");
-            return;
-        }
-        if (selectedEquipment.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Seleziona almeno un pezzo di attrezzatura.");
-            return;
-        }
-
-        if (!checkRequiredEquipment(selectedEquipment)) {
+        if (date == null || timeSlot == null || selectedMicrophone == null || selectedAudio == null || selectedMonitor == null) {
+            showAlert(Alert.AlertType.WARNING, "Completa la selezione di giorno, fascia oraria e attrezzatura secondo la formula obbligatoria.");
             return;
         }
 
@@ -211,12 +202,20 @@ public class BookingController {
             return;
         }
 
+        if (!bookingDAO.isEquipmentAvailable(selectedMicrophone, startDateTime, endDateTime) ||
+        !bookingDAO.isEquipmentAvailable(selectedAudio, startDateTime, endDateTime) ||
+        !bookingDAO.isEquipmentAvailable(selectedMonitor, startDateTime, endDateTime)) {
+    
+        showAlert(Alert.AlertType.ERROR, "Alcuna delle attrezzature selezionate non è disponibile in questa fascia oraria.");
+        return;
+    }
+
         boolean success = bookingDAO.createBooking(
                 utenteLoggato.getId(),
                 studioSelezionato.getId(),
                 startDateTime,
                 endDateTime,
-                selectedEquipment
+                List.of(selectedMicrophone, selectedAudio, selectedMonitor)
         );
 
         if (success) {
@@ -237,5 +236,9 @@ public class BookingController {
     private void showAlert(Alert.AlertType type, String message) {
         Alert alert = new Alert(type, message);
         alert.showAndWait();
+    }
+
+    public void setHomeController(HomeController homeController) {
+        this.homeController = homeController;
     }
 }
