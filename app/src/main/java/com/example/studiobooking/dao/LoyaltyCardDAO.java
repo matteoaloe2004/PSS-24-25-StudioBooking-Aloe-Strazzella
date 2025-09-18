@@ -13,15 +13,14 @@ public class LoyaltyCardDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, userId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new LoyaltyCard(
-                            rs.getLong("id"),
-                            rs.getLong("user_id"),
-                            rs.getInt("total_booking"),
-                            rs.getInt("discount_level")
-                    );
-                }
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new LoyaltyCard(
+                    rs.getLong("id"),
+                    rs.getLong("user_id"),
+                    rs.getInt("Total_booking"),   // qui usiamo Total_booking
+                    rs.getInt("discount_level")
+                );
             }
 
         } catch (SQLException e) {
@@ -68,24 +67,53 @@ public class LoyaltyCardDAO {
         return false;
     }
 
-    // Ricalcola e aggiorna la loyalty card in base alle prenotazioni attive
-    public void refreshLoyaltyCard(long userId) {
-        String sql = "SELECT COUNT(*) AS total FROM bookings WHERE user_id = ? AND status != 'CANCELLED'";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public boolean addBookings(long userId, int delta) {
+    try (Connection conn = DatabaseConnection.getConnection()) {
+        // Leggi il totale attuale
+        PreparedStatement select = conn.prepareStatement(
+            "SELECT Total_booking FROM loyalty_cards WHERE user_id = ?"
+        );
+        select.setLong(1, userId);
+        ResultSet rs = select.executeQuery();
+        if (!rs.next()) return false;
 
-            stmt.setLong(1, userId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    int totalBookings = rs.getInt("total");
-                    System.out.println("DEBUG: userId=" + userId + " totalBookings=" + totalBookings);
-                    updateDiscountLevel(userId, totalBookings);
-                }
-            }
+        int totalBookings = rs.getInt("Total_booking");
+        int newTotal = Math.max(totalBookings + delta, 0); // non scende sotto 0
 
-        } catch (SQLException e) {
-            System.err.println("Errore nel ricalcolo della loyalty card per userId=" + userId);
-            e.printStackTrace();
-        }
+        // Aggiorna totale e livello sconto
+        int newDiscount = Math.min((newTotal / 3) * 5, 30);
+
+        PreparedStatement update = conn.prepareStatement(
+            "UPDATE loyalty_cards SET Total_booking = ?, discount_level = ? WHERE user_id = ?"
+        );
+        update.setInt(1, newTotal);
+        update.setInt(2, newDiscount);
+        update.setLong(3, userId);
+
+        return update.executeUpdate() > 0;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
     }
+}
+    public void refreshLoyaltyCard(long userId) {
+    try (Connection conn = DatabaseConnection.getConnection()) {
+        PreparedStatement stmt = conn.prepareStatement(
+            "SELECT COUNT(*) AS total FROM bookings WHERE user_id = ? AND status != 'CANCELLED'"
+        );
+        stmt.setLong(1, userId);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            int totalBookings = rs.getInt("total");
+
+            // Aggiorna loyalty card
+            updateDiscountLevel(userId, totalBookings);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+
 }

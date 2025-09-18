@@ -16,7 +16,7 @@ public class LoginController {
 
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
-    @FXML private Button loginButton, registerButton;
+    @FXML private Button loginButton;
 
     private final UserDAO userDAO = new UserDAO();
     private HomeController homeController;
@@ -26,7 +26,6 @@ public class LoginController {
     @FXML
     public void initialize() {
         loginButton.setOnAction(e -> login());
-        registerButton.setOnAction(e -> openRegister());
     }
 
     private void login() {
@@ -89,19 +88,8 @@ public class LoginController {
             stage.setScene(new Scene(loader.load(), 400, 300));
             stage.setTitle("Registrazione");
             stage.show();
-        } catch (Exception ex) { ex.printStackTrace(); }
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String msg) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        alert.showAndWait();
-    }
-
-    private void closeWindow() {
-        Stage stage = (Stage) loginButton.getScene().getWindow();
-        stage.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

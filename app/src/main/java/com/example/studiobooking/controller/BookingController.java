@@ -19,6 +19,7 @@ import java.util.List;
 
 public class BookingController {
 
+    @FXML private Label studioDescriptionLabel;
     @FXML private Label studioLabel;
     @FXML private DatePicker datePicker;
     @FXML private ComboBox<String> timeSlotComboBox;
@@ -40,22 +41,25 @@ public class BookingController {
         this.studioSelezionato = studio;
         if (studioLabel != null && studio != null) studioLabel.setText("Prenotazione: " + studio.getName());
 
-        if (datePicker != null) {
-            datePicker.setDayCellFactory(picker -> new DateCell() {
-                @Override
-                public void updateItem(LocalDate date, boolean empty) {
-                    super.updateItem(date, empty);
-                    LocalDate now = LocalDate.now();
-                    setDisable(empty || date.isBefore(now) || date.isAfter(now.plusMonths(1)));
-                }
-            });
-            datePicker.setValue(LocalDate.now());
-        }
+        studioLabel.setText("Prenotazione: " + studio.getName());
 
-        if (timeSlotComboBox != null) {
-            timeSlotComboBox.getItems().addAll("09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00");
-            timeSlotComboBox.getSelectionModel().selectFirst();
-        }
+        datePicker.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                LocalDate now = LocalDate.now();
+                setDisable(empty || date.isBefore(now) || date.isAfter(now.plusMonths(1)));
+            }
+        });
+        datePicker.setValue(LocalDate.now());
+
+        timeSlotComboBox.getItems().addAll(
+                "09:00 - 11:00",
+                "11:00 - 13:00",
+                "14:00 - 16:00",
+                "16:00 - 18:00"
+        );
+        timeSlotComboBox.getSelectionModel().selectFirst();
 
         loadEquipment();
     }

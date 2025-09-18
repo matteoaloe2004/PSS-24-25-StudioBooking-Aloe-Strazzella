@@ -96,21 +96,47 @@ public class HomeController {
         }
     }
 
-    private void initOrLoadLoyaltyCard() {
+    public void loadLoyaltyCard() {
         if (utenteLoggato == null) return;
 
-        LoyaltyCard card = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
-        if (card == null) {
+        // Recupera loyalty card; se non esiste la crea
+        loyaltyCard = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
+        if (loyaltyCard == null) {
             loyaltyCardDAO.createLoyaltyCard(utenteLoggato.getId());
-            card = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
+            loyaltyCard = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
         }
-        utenteLoggato.setLoyaltyCard(card);
 
-        if (loyaltyCardController != null) {
-            loyaltyCardController.setUtente(utenteLoggato);
-            loyaltyCardController.updateLoyaltyInfo();
+        if (loyaltyCard != null) {
+            // Aggiorna in tempo reale
+            int totalBookings = bookingDAO.getBookingsByUser(utenteLoggato.getId()).size();
+            loyaltyCardDAO.updateDiscountLevel(utenteLoggato.getId(), totalBookings);
+
+            totalBookingsLabel.setText("Prenotazioni totali: " + totalBookings);
+            discountLabel.setText("Sconto attuale: " + Math.min((totalBookings / 3) * 5, 30) + "%");
         }
     }
+
+    private void refreshLoyaltyCard() {
+    if (utenteLoggato == null) return;
+
+    try {
+        // Conta solo le prenotazioni effettive (non cancellate)
+        int totalBookings = bookingDAO.getBookingsByUser(utenteLoggato.getId())
+                                      .stream()
+                                      .filter(b -> !"CANCELLED".equalsIgnoreCase(b.getStatus()))
+                                      .toArray().length;
+
+        // Aggiorna loyalty card
+        loyaltyCardDAO.updateDiscountLevel(utenteLoggato.getId(), totalBookings);
+
+        // Aggiorna i label in GUI
+        totalBookingsLabel.setText("Prenotazioni totali: " + totalBookings);
+        discountLabel.setText("Sconto attuale: " + Math.min((totalBookings / 3) * 5, 30) + "%");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
 
     public void loadUserBookings() {
         if (utenteLoggato == null) return;
