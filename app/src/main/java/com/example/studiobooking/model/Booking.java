@@ -12,24 +12,11 @@ public class Booking {
     private final LocalDateTime endTime;
     private String status;
 
-    // Costruttore completo
     public Booking(long id, long userId, String userName, long studioId,
                    LocalDateTime startTime, LocalDateTime endTime, String status) {
         this.id = id;
         this.userId = userId;
         this.userName = userName;
-        this.studioId = studioId;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.status = status;
-    }
-
-    // Costruttore DAO-friendly (senza userName)
-    public Booking(long id, long userId, long studioId,
-                   LocalDateTime startTime, LocalDateTime endTime, String status) {
-        this.id = id;
-        this.userId = userId;
-        this.userName = ""; // default vuoto
         this.studioId = studioId;
         this.startTime = startTime;
         this.endTime = endTime;

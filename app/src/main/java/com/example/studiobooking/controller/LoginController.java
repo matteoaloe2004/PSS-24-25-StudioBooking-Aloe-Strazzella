@@ -2,6 +2,7 @@ package com.example.studiobooking.controller;
 
 import com.example.studiobooking.dao.UserDAO;
 import com.example.studiobooking.model.Utente;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -19,9 +20,14 @@ public class LoginController {
     @FXML private Button loginButton;
 
     private final UserDAO userDAO = new UserDAO();
+
+    // Campo per collegare la Home esistente
     private HomeController homeController;
 
-    public void setHomeController(HomeController homeController) { this.homeController = homeController; }
+    // Metodo pubblico per impostare la HomeController
+    public void setHomeController(HomeController homeController) {
+        this.homeController = homeController;
+    }
 
     @FXML
     public void initialize() {
@@ -33,11 +39,11 @@ public class LoginController {
         String password = passwordField.getText().trim();
 
         Utente utente = userDAO.login(email, password);
-
         if (utente != null) {
             if (utente.isAdmin()) {
                 openAdminHome(utente);
             } else {
+                // Aggiorna la Home esistente se presente
                 if (homeController != null) {
                     homeController.setUtenteLoggato(utente);
                     homeController.loadUserBookings();
@@ -45,10 +51,18 @@ public class LoginController {
                     openUserHome(utente);
                 }
             }
-            showAlert(Alert.AlertType.INFORMATION, "Benvenuto!", "Ciao " + utente.getName() + ", bentornato su Studio Booking!");
-            closeWindow();
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Benvenuto!");
+            alert.setHeaderText(null);
+            alert.setContentText("Ciao " + utente.getName() + ", bentornato su Studio Booking!");
+            alert.showAndWait();
+
+            Stage stage = (Stage) loginButton.getScene().getWindow();
+            stage.close();
         } else {
-            showAlert(Alert.AlertType.ERROR, "Errore", "Email o password errati!");
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Email o password errati!");
+            alert.showAndWait();
         }
     }
 
@@ -56,6 +70,7 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AdminView.fxml"));
             Parent root = loader.load();
+
             AdminController controller = loader.getController();
             controller.initAdmin(admin);
 
@@ -63,13 +78,16 @@ public class LoginController {
             stage.setTitle("Pannello Admin");
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void openUserHome(Utente user) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/HomeView.fxml"));
             Parent root = loader.load();
+
             HomeController controller = loader.getController();
             controller.setUtenteLoggato(user);
             controller.loadUserBookings();
@@ -78,18 +96,10 @@ public class LoginController {
             stage.setTitle("Home Utente");
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    private void openRegister() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/RegisterView.fxml"));
-            Stage stage = new Stage();
-            stage.setScene(new Scene(loader.load(), 400, 300));
-            stage.setTitle("Registrazione");
-            stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+
+    
 }

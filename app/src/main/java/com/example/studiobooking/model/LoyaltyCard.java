@@ -1,23 +1,30 @@
 package com.example.studiobooking.model;
 
-public class LoyaltyCard {
-    private long id;
-    private long userId;
-    private int totalBookings; // pluralizzato per coerenza
-    private int discountLevel; // in percentuale
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 
-    public LoyaltyCard(long id, long userId, int totalBookings, int discountLevel) {
+public class LoyaltyCard {
+
+    private final long id;
+    private final long userId;
+    private final IntegerProperty totalBooking = new SimpleIntegerProperty(0);
+    private final IntegerProperty discountLevel = new SimpleIntegerProperty(0);
+
+    public LoyaltyCard(long id, long userId, int totalBooking, int discountLevel) {
         this.id = id;
         this.userId = userId;
-        this.totalBookings = totalBookings;
-        this.discountLevel = discountLevel;
+        this.totalBooking.set(totalBooking);
+        this.discountLevel.set(discountLevel);
     }
 
     public long getId() { return id; }
     public long getUserId() { return userId; }
-    public int getTotalBookings() { return totalBookings; } // metodo coerente con controller
-    public int getDiscountLevel() { return discountLevel; }
 
-    public void setTotalBookings(int totalBookings) { this.totalBookings = totalBookings; }
-    public void setDiscountLevel(int discountLevel) { this.discountLevel = discountLevel; }
+    public int getTotalBooking() { return totalBooking.get(); }
+    public void setTotalBooking(int value) { totalBooking.set(value); }
+    public IntegerProperty totalBookingProperty() { return totalBooking; }
+
+    public int getDiscountLevel() { return discountLevel.get(); }
+    public void setDiscountLevel(int value) { discountLevel.set(value); }
+    public IntegerProperty discountLevelProperty() { return discountLevel; }
 }

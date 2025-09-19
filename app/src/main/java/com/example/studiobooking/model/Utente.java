@@ -4,36 +4,33 @@ import java.sql.Timestamp;
 
 public class Utente {
     private long id;
-    private String username;      // nome dell'utente
+    private String name;
     private String email;
-    private String password;      // password hash o in chiaro per il DAO
-    private boolean admin;        // true se admin
-    private Timestamp createdAt;  // data di creazione
-    private LoyaltyCard loyaltyCard;
+    private String password;
+    private Timestamp createdAt; // timestamp registrazione
+    private boolean isAdmin;
 
-    // Costruttore completo
-    public Utente(long id, String username, String email, String password, Timestamp createdAt, boolean admin) {
+    public Utente(long id, String name, String email, String password, Timestamp createdAt, boolean isAdmin) {
         this.id = id;
-        this.username = username;
+        this.name = name;
         this.email = email;
         this.password = password;
         this.createdAt = createdAt;
-        this.admin = admin;
+        this.isAdmin = isAdmin;
     }
 
-    // GETTER
+    // getter e setter
     public long getId() { return id; }
-    public String getUsername() { return username; }
-    public String getName() { return username; } // richiesto dai controller
+    public String getName() { return name; }
     public String getEmail() { return email; }
     public String getPassword() { return password; }
     public Timestamp getCreatedAt() { return createdAt; }
-    public boolean isAdmin() { return admin; }
-    public LoyaltyCard getLoyaltyCard() { return loyaltyCard; }
+    public boolean isAdmin() { return isAdmin; }
 
-    // SETTER
-    public void setUsername(String username) { this.username = username; }
+    public void setId(long id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
+    public void setEmail(String email) { this.email = email; }
     public void setPassword(String password) { this.password = password; }
-    public void setAdmin(boolean admin) { this.admin = admin; }
-    public void setLoyaltyCard(LoyaltyCard loyaltyCard) { this.loyaltyCard = loyaltyCard; }
+    public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+    public void setAdmin(boolean isAdmin) { this.isAdmin = isAdmin; }
 }
