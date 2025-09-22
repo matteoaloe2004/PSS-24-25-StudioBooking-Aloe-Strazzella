@@ -3,7 +3,9 @@ package com.example.studiobooking.controller;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -59,6 +61,10 @@ public class AdminController {
     @FXML private PasswordField adminPasswordField;
     @FXML private Button createAdminButton;
 
+    @FXML private ListView<String> studioStatsListView;
+
+    @FXML private Button refreshStatsButton;
+
     private final UserDAO userDAO = new UserDAO();
     private final StudioDAO studioDAO = new StudioDAO();
     private final BookingDAO bookingDAO = new BookingDAO();
@@ -85,6 +91,7 @@ public class AdminController {
         loadStudios();
         loadBookings();
         loadEquipment();
+        refreshStudioStats();
     }
 
     // ------------------- STUDI -------------------
@@ -130,10 +137,46 @@ public class AdminController {
 
     // ------------------- PRENOTAZIONI -------------------
     private void loadBookings() {
-        List<Booking> bookings = bookingDAO.getAllBookings();
-        bookingObservableList.setAll(bookings);
-        bookingsListView.setItems(bookingObservableList);
+    List<Booking> bookings = bookingDAO.getAllBookings();
+    bookingObservableList.setAll(bookings);
+    bookingsListView.setItems(bookingObservableList);
+
+    // Mappa ID studi → lettere A, B, C...
+    List<Studio> studios = studioDAO.getAllStudios();
+    Map<Long, String> studioAliasMap = new HashMap<>();
+    char alias = 'A';
+    for (Studio s : studios) {
+        studioAliasMap.put(s.getId(), String.valueOf(alias));
+        alias++;
     }
+
+    bookingsListView.setCellFactory(lv -> new ListCell<>() {
+        @Override
+        protected void updateItem(Booking booking, boolean empty) {
+            super.updateItem(booking, empty);
+            if (empty || booking == null) {
+                setText(null);
+                setStyle("");
+            } else {
+                String startTime = booking.getStartTime().toLocalTime().toString();
+                String endTime = booking.getEndTime().toLocalTime().toString();
+                String date = booking.getStartTime().toLocalDate().toString();
+                String studioAlias = studioAliasMap.getOrDefault(booking.getStudioId(), "?");
+                String status = booking.getStatus();
+
+                setText(String.format("Studio %s | %s %s-%s | Utente: %s | %s",
+                        studioAlias, date, startTime, endTime, booking.getUserName(), status));
+
+                // Colori in base allo stato
+                switch (status.toUpperCase()) {
+                    case "CONFIRMED" -> setStyle("-fx-text-fill: green;");
+                    case "CANCELLED" -> setStyle("-fx-text-fill: red; -fx-strikethrough: true;");
+                    default -> setStyle("-fx-text-fill: gray;");
+                }
+            }
+        }
+    });
+}
 
     @FXML private void addBooking() {
         BookingData data = showBookingDialog(null);
@@ -323,4 +366,10 @@ public class AdminController {
         Alert alert = new Alert(type, message);
         alert.showAndWait();
     }
+
+    @FXML private void refreshStudioStats() {
+    studioStatsListView.getItems().clear();
+    List<String> stats = bookingDAO.getStudioStatistics();
+    studioStatsListView.getItems().addAll(stats);
+}
 }

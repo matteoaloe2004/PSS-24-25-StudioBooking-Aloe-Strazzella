@@ -329,4 +329,31 @@ public class BookingDAO {
     return bookings;
 }
 
+public List<String> getStudioStatistics() {
+    List<String> stats = new ArrayList<>();
+    String sql = """
+        SELECT s.name, COUNT(b.id) AS bookings_count
+        FROM studios s
+        LEFT JOIN bookings b ON s.id = b.studio_id AND b.status = 'CONFIRMED'
+        GROUP BY s.id, s.name
+        ORDER BY bookings_count DESC
+    """;
+
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql);
+         ResultSet rs = stmt.executeQuery()) {
+
+        while (rs.next()) {
+            String studioName = rs.getString("name");
+            int count = rs.getInt("bookings_count");
+            stats.add(studioName + " → " + count + " prenotazioni Attive");
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return stats;
+}
+
 }

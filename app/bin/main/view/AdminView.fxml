@@ -47,7 +47,16 @@
                 style="-fx-background-color: #f44336; -fx-text-fill: white;"
                 onAction="#deleteEquipment"/>
     </HBox>
+    <VBox spacing="10" alignment="TOP_CENTER" style="-fx-background-color: #ffffff; -fx-padding: 15; -fx-border-color: #cccccc; -fx-border-radius: 5;">
+    <Label text="Statistiche Studi" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <ListView fx:id="studioStatsListView" prefWidth="250" prefHeight="200"/>
+    <Button fx:id="refreshStatsButton" text="Aggiorna Statistiche"
+            style="-fx-background-color: #2196F3; -fx-text-fill: white;"
+            onAction="#refreshStudioStats"/>
+            </VBox>
 </VBox>
+
+
 
         <!-- Colonna destra: Studi sopra, Creazione Admin sotto -->
         <VBox spacing="20" alignment="TOP_CENTER">
@@ -65,6 +74,7 @@
                             onAction="#disableStudio"/>
                 </HBox>
             </VBox>
+
 
             <!-- Creazione Admin -->
             <VBox spacing="10" alignment="TOP_CENTER" style="-fx-background-color: #ffffff; -fx-padding: 15; -fx-border-color: #cccccc; -fx-border-radius: 5;">
