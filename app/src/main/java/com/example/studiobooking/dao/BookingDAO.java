@@ -8,30 +8,12 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.example.studiobooking.model.Booking;
 import com.example.studiobooking.model.Equipment;
 
 public class BookingDAO {
-
-    private Map<Long, Booking> testDB = new HashMap<>();
-    private long nextId = 1;
-
-    // Salva una prenotazione (per test automatici)
-    public void save(Booking booking) {
-        if (booking.getId() == 0) {
-            booking.setId(nextId++);
-        }
-        testDB.put(booking.getId(), booking);
-    }
-
-    // Recupera una prenotazione per ID (per test automatici)
-    
-
-    
 
     // Controlla se ci sono conflitti di prenotazione
     public boolean hasConflict(long studioId, LocalDateTime start, LocalDateTime end, Long excludeBookingId) {
