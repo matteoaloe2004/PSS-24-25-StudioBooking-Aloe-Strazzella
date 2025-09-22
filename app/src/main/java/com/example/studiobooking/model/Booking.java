@@ -4,12 +4,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Booking {
-    private final long id;
-    private final long userId;
-    private String userName; 
-    private final long studioId;
-    private final LocalDateTime startTime;
-    private final LocalDateTime endTime;
+    private long id;
+    private long userId;
+    private String userName;
+    private long studioId;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private String status;
 
     public Booking(long id, long userId, String userName, long studioId,
@@ -24,15 +24,19 @@ public class Booking {
     }
 
     public long getId() { return id; }
+    public void setId(long id) { this.id = id; }
     public long getUserId() { return userId; }
     public String getUserName() { return userName; }
     public long getStudioId() { return studioId; }
     public LocalDateTime getStartTime() { return startTime; }
     public LocalDateTime getEndTime() { return endTime; }
     public String getStatus() { return status; }
+    
 
     public void setUserName(String userName) { this.userName = userName; }
     public void setStatus(String status) { this.status = status; }
+
+    
 
     @Override
     public String toString() {
