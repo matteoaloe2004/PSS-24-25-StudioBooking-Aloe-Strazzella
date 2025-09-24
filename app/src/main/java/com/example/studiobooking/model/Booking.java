@@ -5,11 +5,11 @@ import java.time.format.DateTimeFormatter;
 
 public class Booking {
     private long id;
-    private long userId;
+    private final long userId;
     private String userName;
-    private long studioId;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private final long studioId;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
     private String status;
 
     public Booking(long id, long userId, String userName, long studioId,

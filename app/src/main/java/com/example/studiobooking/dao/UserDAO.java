@@ -33,7 +33,6 @@ public class UserDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -46,7 +45,6 @@ public class UserDAO {
             ResultSet rs = stmt.executeQuery();
             return rs.next();
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -67,7 +65,6 @@ public class UserDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -83,7 +80,6 @@ public class UserDAO {
             stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -105,7 +101,6 @@ public class UserDAO {
             );
         }
     } catch (SQLException e) {
-        e.printStackTrace();
     }
     return null;
 }
@@ -117,7 +112,6 @@ public class UserDAO {
             stmt.setLong(1, userId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }

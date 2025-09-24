@@ -80,8 +80,7 @@ public class LoginController {
             stage.setTitle("Pannello Admin");
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
         }
     }
 
@@ -99,7 +98,6 @@ public class LoginController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

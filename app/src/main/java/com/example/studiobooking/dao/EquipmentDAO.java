@@ -29,7 +29,6 @@ public class EquipmentDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return list;
     }
@@ -54,7 +53,6 @@ public class EquipmentDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return equipmentList;
     }
@@ -71,7 +69,6 @@ public class EquipmentDAO {
                 if (keys.next()) return keys.getLong(1);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return -1;
     }
@@ -87,7 +84,6 @@ public class EquipmentDAO {
             }
             stmt.executeBatch();
         } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
@@ -98,7 +94,6 @@ public class EquipmentDAO {
             stmt.setLong(1, equipmentId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -110,7 +105,6 @@ public class EquipmentDAO {
             stmt.setLong(1, equipmentId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }

@@ -28,7 +28,6 @@ public class StudioDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return studios;
     }
@@ -50,7 +49,6 @@ public class StudioDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return studios;
     }
@@ -63,7 +61,6 @@ public class StudioDAO {
             stmt.setLong(2, studioId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -77,7 +74,6 @@ public class StudioDAO {
             stmt.setBoolean(3, studio.isActive());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -92,7 +88,6 @@ public class StudioDAO {
             stmt.setLong(4, studio.getId());
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -104,7 +99,6 @@ public class StudioDAO {
             stmt.setLong(1, id);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -125,7 +119,6 @@ public class StudioDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }

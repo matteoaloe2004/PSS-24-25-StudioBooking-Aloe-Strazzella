@@ -26,7 +26,6 @@ public class LoyaltyCardDAO {
                 );
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -40,7 +39,6 @@ public class LoyaltyCardDAO {
             stmt.setLong(1, userId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -57,7 +55,6 @@ public class LoyaltyCardDAO {
             stmt.setLong(3, userId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -76,7 +73,6 @@ public class LoyaltyCardDAO {
                 updateDiscountLevel(userId, totalBookings);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }

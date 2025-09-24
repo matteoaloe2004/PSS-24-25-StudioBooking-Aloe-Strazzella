@@ -1,5 +1,6 @@
 package com.example.studiobooking.controller;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -136,7 +137,6 @@ public class HomeController {
         discountLabel.setText("Sconto attuale: " + Math.min((totalBookings / 3) * 5, 30) + "%");
 
     } catch (Exception e) {
-        e.printStackTrace();
     }
 }
 
@@ -200,8 +200,7 @@ public class HomeController {
             stage.setScene(new Scene(root));
             stage.setTitle("Login");
             stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (IOException ex) {
         }
     }
 
@@ -212,8 +211,7 @@ public class HomeController {
             stage.setScene(new Scene(loader.load(), 400, 300));
             stage.setTitle("Registrazione");
             stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (IOException ex) {
         }
     }
 
@@ -239,8 +237,7 @@ public class HomeController {
             stage.setScene(new Scene(root, 800, 600));
             stage.setTitle("Prenotazione Studio: " + selected.getName());
             stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (IOException ex) {
         }
     }
 

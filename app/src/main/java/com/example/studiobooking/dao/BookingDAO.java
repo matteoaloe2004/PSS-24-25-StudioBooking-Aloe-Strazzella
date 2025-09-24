@@ -43,7 +43,6 @@ public class BookingDAO {
                 return rs.getInt(1) > 0;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return true;
     }
@@ -81,7 +80,6 @@ public class BookingDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return bookings;
     }
@@ -109,7 +107,6 @@ public class BookingDAO {
                 );
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -159,7 +156,6 @@ public class BookingDAO {
             conn.commit();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -192,7 +188,6 @@ public class BookingDAO {
             return rs.getInt(1) == 0; // true se non ci sono conflitti
         }
     } catch (SQLException e) {
-        e.printStackTrace();
     }
     return false;
 }
@@ -214,7 +209,6 @@ public class BookingDAO {
             stmt.setLong(5, bookingId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -244,7 +238,6 @@ public class BookingDAO {
                     return true;
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
             }
         }
         return false;
@@ -258,7 +251,6 @@ public class BookingDAO {
             stmt.setLong(1, bookingId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -289,7 +281,6 @@ public class BookingDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return bookings;
     }
@@ -324,7 +315,6 @@ public class BookingDAO {
         }
 
     } catch (SQLException e) {
-        e.printStackTrace();
     }
     return bookings;
 }
@@ -350,7 +340,6 @@ public List<String> getStudioStatistics() {
         }
 
     } catch (SQLException e) {
-        e.printStackTrace();
     }
 
     return stats;
