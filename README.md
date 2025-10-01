@@ -913,6 +913,7 @@ All'inizio non è stato facile, soprattutto perché era la mia prima volta che p
 L'elemento più impegnativo è stato senza dubbio lo sviluppo della funzione di prenotazione, la parte importante dell applicazione. In particolare, la gestione della disponibilità degli studi e delle attrezzature in base al giorno e all'ora richiesti, nonstante ciò dopo vari tentativi siamo riusciti a finire anche quella implementazione.
 
 ### Strazzella
+Lavorare alla realizzazione di questo progetto è stata un’esperienza costruttiva, che mi ha permesso di apprendere nuove tecnologie, come JavaFX, rivelatasi sotto alcuni aspetti tutt’altro che semplice e intuitiva. Inizialmente abbiamo incontrato delle difficoltà nello sviluppo, delle quali eravamo consapevoli; per questo motivo abbiamo deciso di affrontarlo per ultimo, dedicandogli il tempo necessario per completarlo al meglio. Dal mio punto di vista, diverse parti sono risultate complesse da implementare, in particolare la gestione della LoyaltyCard: l’aggiornamento in tempo reale delle prenotazioni e il calcolo dello sconto hanno richiesto numerosi tentativi. Tuttavia, dopo vari aggiustamenti, siamo riusciti a portare a termine anche questa funzionalità in maniera ottimale. Ritengo quindi che questo progetto sia stato molto formativo, perché ha pienamente incarnato il concetto di “imparare sbagliando”: dopo aver affrontato più volte gli ostacoli, siamo riusciti a superarli e a completare con successo il lavoro.
 
 ---
 
