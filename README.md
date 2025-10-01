@@ -7,28 +7,28 @@ Autori: Strazzella Elia, Aloè Matteo
 
 ## Analisi dei Requisiti
 
-L’obiettivo del progetto è la realizzazione di un sistema gestionale per la prenotazione di studi 
+L’obiettivo del progetto è la realizzazione e progettazione di un sistema gestionale per la prenotazione di studi 
 musicali. 
 L’applicazione permette a utenti e amministratori di interagire con una piattaforma che gestisce studi, 
-attrezzature e prenotazioni, garantendo un’esperienza semplice ma completa. 
+attrezzature e prenotazioni. 
 
 ### Requisiti Funzionali
 
-• [RF1] Gestione utenti: registrazione, login e autenticazione con distinzione tra utente standard 
+• [RF1] Gestione utenti: registrazione, login e autenticazione con distinzione tra utente
 e amministratore. 
 
-• [RF2] Prenotazione di studi musicali con scelta di data, fascia oraria e attrezzature disponibili. 
+• [RF2] Prenotazione di studi con scelta di data, fascia oraria e attrezzature disponibili. 
 
 • [RF3] Visualizzazione e gestione delle prenotazioni da parte degli utenti (storico, 
 annullamento). 
 
-• [RF4] Gestione studi e attrezzature da parte dell’amministratore (creazione, modifica, 
+• [RF4] Gestione studi e attrezzature da parte dell’amministratore (Operazioni CRUD, 
 abilitazione/disabilitazione). 
 
 • [RF5] Sistema di statistiche per gli amministratori (prenotazioni per studio, utilizzo studi, 
 prenotazioni attive). 
 
-• [RF6] Sistema di loyalty card per gli utenti (conteggio prenotazioni → vantaggi/sconti). 
+• [RF6] Sistema di loyalty card per gli utenti (conteggio prenotazioni → sconti). 
 
 ### Requisiti Opzionali
 
@@ -91,8 +91,8 @@ classDiagram
 L’applicazione gestisce prenotazioni di studi, utenti e attrezzature in un contesto asincrono. Il 
 dominio è costituito da entità principali come Utente, Studio, Booking, Equipment e LoyaltyCard, 
 ciascuna con attributi specifici e relazioni definite. L’accesso ai dati persistenti è centralizzato nei 
-DAO, che isolano la logica applicativa dalle operazioni sul database. La struttura del dominio 
-consente di rappresentare chiaramente utenti, studi e prenotazioni, facilitando operazioni come 
+DAO, che isolano la logica applicativa dalle operazioni sul database. La struttura consente di rappresentare
+chiaramente utenti, studi e prenotazioni, facilitando operazioni come 
 creazione, modifica e visualizzazione degli oggetti.
 
 ```mermaid
@@ -215,10 +215,10 @@ classDiagram
 
 ## Design 
 
-Il progetto adotta un’architettura MVC, dove i Controller mediano tra Model e View, scambiando 
+Il progetto adotta un’architettura MVC (Model - View - Controller), dove i Controller mediano tra Model e View, scambiando 
 informazioni tramite DTO per trasferire solo i dati necessari. I DAO gestiscono la persistenza, 
 garantendo modularità e testabilità. Le View aggiornano le informazioni in modo asincrono, 
-indipendente dal Model, sfruttando pattern come Observer per notifiche reattive. L’approccio 
+indipendente dal Model grazie al pattern Observer. L’approccio 
 modulare consente di estendere facilmente funzionalità e di mantenere una separazione chiara tra 
 logica di business e interfaccia utente. 
 
@@ -281,9 +281,9 @@ L’architettura di StudioBooking si basa sul pattern MVC (Model-View-Controller
 di separare chiaramente la logica applicativa dall’interfaccia utente e dalla gestione dei dati. Il 
 Controller funge da tramite principale: riceve gli input dall’utente tramite la View e invoca i 
 metodi appropriati sui DAO o direttamente sul Model per aggiornare lo stato del sistema. Il Model 
-rappresenta le entità principali, come Utente, Studio, Booking, Equipment e LoyaltyCard, e 
-contiene le regole di dominio necessarie per il corretto funzionamento dell’applicazione. I DAO 
-gestiscono la persistenza dei dati, consentendo di leggere e scrivere sul database senza che le altre 
+rappresenta le entità principali (Utente, Studio, Booking, Equipment e LoyaltyCard) e 
+contiene le regole di dominio necessarie per il corretto funzionamento dell’applicazione. I DAO (Data Access Object) 
+gestiscono la persistenza dei dati, consentendo di leggere e scrivere sul database (MySql) senza che le altre 
 componenti debbano conoscere i dettagli di accesso. Infine, la View si occupa di presentare 
 all’utente le informazioni provenienti dal Model e di notificare al Controller le azioni eseguite. 
 
@@ -366,8 +366,8 @@ di progettazione.
 
 Durante lo sviluppo della funzionalità di prenotazione e cancellazione, ho voluto garantire che 
 l’utente potesse interagire facilmente con gli studi disponibili e gestire le proprie prenotazioni in 
-modo intuitivo. Ho implementato un sistema in cui il calendario tiene traccia delle fasce orarie 
-occupate, evitando conflitti, e le modifiche vengono immediatamente riflesse nella view. La logica 
+modo intuitivo. Ho implementato un sistema in cui il calendario tiene traccia delle fasce orarie mostrando un pallino rosso sulle date
+occupate. Cosi facendo evitiamo conflitti, e le modifiche vengono immediatamente riflesse nella view. La logica 
 di creazione e cancellazione è stata centralizzata nel BookingDAO, separando così l’interfaccia 
 grafica dalla gestione del database e rendendo il sistema più testabile e robusto. 
 
@@ -413,11 +413,12 @@ classDiagram
 
 #### Gestione Amministratore 
 
-La gestione dell’amministratore è stata progettata per permettere il controllo completo delle risorse 
-del sistema. Ho creato interfacce che consentono l’aggiunta, la rimozione o la sospensione di 
-attrezzature e studi. Tutte queste operazioni passano attraverso i DAO corrispondenti (StudioDAO e 
+La gestione dell’amministratore è stata progettata per permettere il controllo completo dell'applicazione.
+Ho creato interfacce che consentono l’aggiunta, la rimozione o la sospensione di 
+attrezzature, studi e prenotazioni. Tutte queste operazioni passano attraverso i DAO corrispondenti (StudioDAO e 
 EquipmentDAO), garantendo che la logica di business e le modifiche al database siano centralizzate 
 e consistenti, mentre la view rimane semplice e chiara per l’uso dell’amministratore. 
+Vi è anche la possibilità di visualizzare tutte le prenotazioni effettuate dall utente e le prenotazioni attive per i determinati studi, cosi da avere un idea della tendenza.
 
 ```mermaid
 classDiagram
@@ -468,9 +469,8 @@ classDiagram
 
 Per la registrazione e il login, ho centralizzato la logica di creazione e autenticazione degli utenti nel 
 UserDAO. Questo ha permesso di separare chiaramente la gestione dei dati dal rendering grafico. 
-La view mostra anche le ultime sessioni prenotate dall’utente, integrando la carta fedeltà e fornendo 
-informazioni aggiornate sulle attività precedenti, senza introdurre complessità nella logica del front-
-end. 
+La view mostra a sua volta anche le ultime sessioni prenotate dall’utente, integrando la carta fedeltà e fornendo 
+informazioni aggiornate sulle attività precedenti.
 ```mermaid
 classDiagram
     class Utente {
@@ -527,7 +527,8 @@ attrezzature e la carta fedeltà degli utenti.
 
 #### Verifica Disponibilità
 
-Per la verifica disponibilità, la classe Booking funge da soggetto osservato: ogni volta che una prenotazione viene creata, modificata o cancellata, i controller associati (BookingController e StudiosController) aggiornano automaticamente le view (BookingView.fxml e StudiosView.fxml), implementando il pattern Observer. Il collegamento con il BookingDAO permette di isolare l’accesso al database: tutte le operazioni di lettura e scrittura delle prenotazioni passano attraverso il DAO, garantendo separazione tra logica di business e logica di persistenza.
+Per la verifica disponibilità, la classe Booking funge da soggetto osservato: ogni volta che una prenotazione viene creata, modificata o cancellata, i controller associati (BookingController e StudiosController) aggiornano automaticamente le view (BookingView.fxml e StudiosView.fxml), implementando il pattern Observer. Il tutto funziona grazie alle 2 funzioni create HasConflict() e IsAvaible(), che prima di confermare qualsiasi prenotazione effettuano un check per verificare che non vi siano altre prenotazioni nella stessa data e fascia oraria.
+Il collegamento con il BookingDAO permette di isolare l’accesso al database: tutte le operazioni di lettura e scrittura delle prenotazioni passano attraverso il DAO, garantendo separazione tra logica di business e logica di persistenza.
 
 ```mermaid
 classDiagram
@@ -907,6 +908,9 @@ centralmente la logica di business, separandola dalla view e facilitando test e 
 ## Commenti Finali
 
 ### Aloè
+Il progetto si è rivelato un'esperienza stimolante e impegnativa, che abbiamo affrontato passo dopo passo fino al raggiungimento di un risultato soddisfacente. Abbiamo deciso di completarlo come progetto finale del secondo anno, poiché ritenevamo che valesse la pena dedicargli più tempo e attenzione senza compromettere la nostra preparazione per gli esami rimanenti.
+All'inizio non è stato facile, soprattutto perché era la mia prima volta che programmavo in Java e l'utilizzo di JavaFX non era particolarmente intuitivo. In alcuni casi, l'IDE segnalava le implementazioni corrette come errori, il che creava ulteriori difficoltà. Tuttavia, grazie a diversi tentativi e a una costante voglia di migliorare, siamo riusciti a dare vita al nostro progetto.
+L'elemento più impegnativo è stato senza dubbio lo sviluppo della funzione di prenotazione, il vero cuore dell'applicazione. In particolare, la gestione della disponibilità delle apparecchiature in base al giorno e all'ora richiesti, nonstante ciò dopo vari tentativi siamo riusciti a finire anche quella implementazione.
 
 ### Strazzella
 
