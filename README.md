@@ -908,9 +908,9 @@ centralmente la logica di business, separandola dalla view e facilitando test e 
 ## Commenti Finali
 
 ### Aloè
-Il progetto si è rivelato un'esperienza stimolante e impegnativa, che abbiamo affrontato passo dopo passo fino al raggiungimento di un risultato soddisfacente. Abbiamo deciso di completarlo come progetto finale del secondo anno, poiché ritenevamo che valesse la pena dedicargli più tempo e attenzione senza compromettere la nostra preparazione per gli esami rimanenti.
-All'inizio non è stato facile, soprattutto perché era la mia prima volta che programmavo in Java e l'utilizzo di JavaFX non era particolarmente intuitivo. In alcuni casi, l'IDE segnalava le implementazioni corrette come errori, il che creava ulteriori difficoltà. Tuttavia, grazie a diversi tentativi e a una costante voglia di migliorare, siamo riusciti a dare vita al nostro progetto.
-L'elemento più impegnativo è stato senza dubbio lo sviluppo della funzione di prenotazione, il vero cuore dell'applicazione. In particolare, la gestione della disponibilità delle apparecchiature in base al giorno e all'ora richiesti, nonstante ciò dopo vari tentativi siamo riusciti a finire anche quella implementazione.
+Il progetto si è rivelato un'esperienza interessante e impegnativa, che abbiamo affrontato passo dopo passo fino al raggiungimento del risultato. Abbiamo deciso di completarlo come progetto finale del secondo anno, poiché ritenevamo che valesse la pena dedicargli qualcosa in più e attenzione senza compromettere la nostra preparazione per gli esami rimanenti.
+All'inizio non è stato facile, soprattutto perché era la mia prima volta che programmavo in Java e l'utilizzo di JavaFX non era particolarmente intuitivo. In alcuni casi, l'IDE segnalava errori che però in fase di build o run non risultavano come tali, il che creava ulteriori difficoltà. Tuttavia, grazie a diversi tentativi e tanta voglia, siamo riusciti ad arrivare a quella che è a nostra app.
+L'elemento più impegnativo è stato senza dubbio lo sviluppo della funzione di prenotazione, la parte importante dell applicazione. In particolare, la gestione della disponibilità degli studi e delle attrezzature in base al giorno e all'ora richiesti, nonstante ciò dopo vari tentativi siamo riusciti a finire anche quella implementazione.
 
 ### Strazzella
 
