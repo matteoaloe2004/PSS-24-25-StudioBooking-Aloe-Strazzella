@@ -1,8 +1,5 @@
 package com.example.studiobooking.controller;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import com.example.studiobooking.dao.BookingDAO;
 import com.example.studiobooking.dao.LoyaltyCardDAO;
 import com.example.studiobooking.dao.StudioDAO;
@@ -100,20 +97,7 @@ public class HomeController {
             registerButton.setVisible(false);
             logoutButton.setVisible(true);
 
-            loadUserBookings();   // carica le prenotazioni aggiornate
-            loadLoyaltyCard();    // aggiorna loyalty card
-        }
-    }
-
-    public void loadLoyaltyCard() {
-        if (utenteLoggato == null) return;
-
-        loyaltyCardDAO.refreshLoyaltyCard(utenteLoggato.getId());
-        loyaltyCard = loyaltyCardDAO.getLoyaltyCardByUserId(utenteLoggato.getId());
-
-        if (loyaltyCard != null) {
-            totalBookingsLabel.setText("Prenotazioni totali: " + loyaltyCard.getTotalBooking());
-            discountLabel.setText("Sconto attuale: " + loyaltyCard.getDiscountLevel() + "%");
+            loadUserBookings();
         }
     }
 
@@ -142,8 +126,7 @@ public class HomeController {
 
         if (success) {
             showAlert(Alert.AlertType.INFORMATION, "Prenotazione annullata con successo.");
-            userBookingsObservableList.remove(selectedBooking);
-            loadLoyaltyCard();
+            userBookingsObservableList.remove(selectedBooking); // aggiornamento realtime
         } else {
             showAlert(Alert.AlertType.ERROR, "Non puoi annullare questa prenotazione (deve essere almeno 24 ore prima).");
         }
@@ -170,14 +153,13 @@ public class HomeController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/LoginView.fxml"));
             Parent root = loader.load();
             LoginController loginController = loader.getController();
-            loginController.setHomeController(this);
+            loginController.setHomeController(this); // passa HomeController al LoginController
 
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
             stage.setTitle("Login");
             stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (IOException ex) {
         }
     }
 
@@ -188,8 +170,7 @@ public class HomeController {
             stage.setScene(new Scene(loader.load(), 400, 300));
             stage.setTitle("Registrazione");
             stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (IOException ex) {
         }
     }
 
@@ -209,14 +190,15 @@ public class HomeController {
             Parent root = loader.load();
             BookingController controller = loader.getController();
             controller.initBooking(utenteLoggato, selected);
+
+            // Passa il riferimento a HomeController per aggiornamento realtime
             controller.setHomeController(this);
 
             Stage stage = new Stage();
             stage.setScene(new Scene(root, 800, 600));
             stage.setTitle("Prenotazione Studio: " + selected.getName());
             stage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (IOException ex) {
         }
     }
 

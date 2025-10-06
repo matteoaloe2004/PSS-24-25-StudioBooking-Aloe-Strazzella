@@ -47,37 +47,17 @@
                 style="-fx-background-color: #f44336; -fx-text-fill: white;"
                 onAction="#deleteEquipment"/>
     </HBox>
+
+    <!-- Sezione Creazione Admin -->
+    <VBox spacing="10" alignment="TOP_CENTER" style="-fx-padding: 15; -fx-border-color: #cccccc; -fx-border-radius: 5; -fx-background-color: #f9f9f9;">
+        <Label text="Crea un nuovo Admin" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+        <TextField fx:id="adminNameField" promptText="Nome completo" prefWidth="250"/>
+        <TextField fx:id="adminEmailField" promptText="Email" prefWidth="250"/>
+        <PasswordField fx:id="adminPasswordField" promptText="Password" prefWidth="250"/>
+        <Button fx:id="createAdminButton" text="Crea Admin" style="-fx-background-color: #2196F3; -fx-text-fill: white;"/>
+    </VBox>
+
 </VBox>
-
-        <!-- Colonna destra: Studi sopra, Creazione Admin sotto -->
-        <VBox spacing="20" alignment="TOP_CENTER">
-
-            <!-- Gestione Studi -->
-            <VBox spacing="15" alignment="TOP_CENTER" style="-fx-background-color: #ffffff; -fx-padding: 15; -fx-border-color: #cccccc; -fx-border-radius: 5;">
-                <Label text="Gestione Studi" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
-                <ListView fx:id="studiosListView" prefWidth="250" prefHeight="200"/>
-                <HBox spacing="10">
-                    <Button fx:id="enableStudioButton" text="Abilita"
-                            style="-fx-background-color: #4CAF50; -fx-text-fill: white;"
-                            onAction="#enableStudio"/>
-                    <Button fx:id="disableStudioButton" text="Disabilita"
-                            style="-fx-background-color: #f44336; -fx-text-fill: white;"
-                            onAction="#disableStudio"/>
-                </HBox>
-            </VBox>
-
-            <!-- Creazione Admin -->
-            <VBox spacing="10" alignment="TOP_CENTER" style="-fx-background-color: #ffffff; -fx-padding: 15; -fx-border-color: #cccccc; -fx-border-radius: 5;">
-                <Label text="Crea un nuovo Admin" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
-                <TextField fx:id="adminNameField" promptText="Nome completo" prefWidth="250"/>
-                <TextField fx:id="adminEmailField" promptText="Email" prefWidth="250"/>
-                <PasswordField fx:id="adminPasswordField" promptText="Password" prefWidth="250"/>
-                <Button fx:id="createAdminButton" text="Crea Admin"
-                        style="-fx-background-color: #2196F3; -fx-text-fill: white;"
-                        onAction="#createAdmin"/>
-            </VBox>
-
-        </VBox>
 
     </HBox>
 </VBox>

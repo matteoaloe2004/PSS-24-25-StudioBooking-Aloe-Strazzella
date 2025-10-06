@@ -1,5 +1,7 @@
 package com.example.studiobooking.controller;
 
+import java.io.IOException;
+
 import com.example.studiobooking.dao.UserDAO;
 import com.example.studiobooking.model.Utente;
 
@@ -78,8 +80,7 @@ public class LoginController {
             stage.setTitle("Pannello Admin");
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
         }
     }
 
@@ -96,8 +97,7 @@ public class LoginController {
             stage.setTitle("Home Utente");
             stage.setScene(new Scene(root));
             stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
         }
     }
 

@@ -33,7 +33,6 @@ public class UserDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -46,7 +45,6 @@ public class UserDAO {
             ResultSet rs = stmt.executeQuery();
             return rs.next();
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -67,7 +65,6 @@ public class UserDAO {
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -83,7 +80,38 @@ public class UserDAO {
             stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Utente getUserByEmail(String email) {
+    String sql = "SELECT * FROM users WHERE email = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, email.trim().toLowerCase());
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return new Utente(
+                rs.getLong("id"),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("password_hash"),
+                rs.getTimestamp("created_at"),
+                rs.getBoolean("is_admin")
+            );
+        }
+    } catch (SQLException e) {
+    }
+    return null;
+}
+
+    public boolean deleteUser(long userId) {
+        String sql = "DELETE FROM users WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
             return false;
         }
     }
