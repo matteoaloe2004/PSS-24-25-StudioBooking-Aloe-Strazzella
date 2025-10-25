@@ -908,11 +908,13 @@ centralmente la logica di business, separandola dalla view e facilitando test e 
 ## Commenti Finali
 
 ### Aloè
+
 Il progetto si è rivelato un'esperienza stimolante e impegnativa, che abbiamo affrontato passo dopo passo fino al raggiungimento di un risultato soddisfacente. Abbiamo deciso di completarlo come progetto finale del secondo anno, poiché ritenevamo che valesse la pena dedicargli più tempo e attenzione senza compromettere la nostra preparazione per gli esami rimanenti.
 All'inizio non è stato facile, soprattutto perché era la mia prima volta che programmavo in Java e l'utilizzo di JavaFX non era particolarmente intuitivo. In alcuni casi, l'IDE segnalava le implementazioni corrette come errori, il che creava ulteriori difficoltà. Tuttavia, grazie a diversi tentativi e a una costante voglia di migliorare, siamo riusciti a dare vita al nostro progetto.
 L'elemento più impegnativo è stato senza dubbio lo sviluppo della funzione di prenotazione, il vero cuore dell'applicazione. In particolare, la gestione della disponibilità delle apparecchiature in base al giorno e all'ora richiesti, nonstante ciò dopo vari tentativi siamo riusciti a finire anche quella implementazione.
 
 ### Strazzella
+
 Lavorare alla realizzazione di questo progetto è stata un’esperienza costruttiva, che mi ha permesso di apprendere nuove tecnologie, come JavaFX, rivelatasi sotto alcuni aspetti tutt’altro che semplice e intuitiva. Inizialmente abbiamo incontrato delle difficoltà nello sviluppo, delle quali eravamo consapevoli; per questo motivo abbiamo deciso di affrontarlo per ultimo, dedicandogli il tempo necessario per completarlo al meglio. Dal mio punto di vista, diverse parti sono risultate complesse da implementare, in particolare la gestione della LoyaltyCard: l’aggiornamento in tempo reale delle prenotazioni e il calcolo dello sconto hanno richiesto numerosi tentativi. Tuttavia, dopo vari aggiustamenti, siamo riusciti a portare a termine anche questa funzionalità in maniera ottimale. Ritengo quindi che questo progetto sia stato molto formativo, perché ha pienamente incarnato il concetto di “imparare sbagliando”: dopo aver affrontato più volte gli ostacoli, siamo riusciti a superarli e a completare con successo il lavoro.
 ---
 
