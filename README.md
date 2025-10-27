@@ -78,10 +78,10 @@ classDiagram
     }
 
     %% Relazioni principali
-    Utente "1" --> "0..*" Booking : effettua
-    Studio "1" --> "0..*" Booking : contiene
-    Booking "0..*" --> "0..*" Equipment : utilizza
-    Utente "1" --> "1" LoyaltyCard : possiede
+    Utente "1" -- "0..*" Booking : effettua
+    Studio "1" -- "0..*" Booking : contiene
+    Booking "0..*" -- "0..*" Equipment : utilizza
+    Utente "1" -- "1" LoyaltyCard : possiede
 ```
 
 ---
